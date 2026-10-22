@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>EngineLog - Chief Engineer</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f172a">
+<style>
+    :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --border: #334155;
+        --text: #e2e8f0;
+        --text-muted: #94a3b8;
+        --accent: #38bdf8;
+        --accent-dark: #0284c7;
+        --yellow: #fbbf24;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 80px; }
+    
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { font-size: 1.2rem; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+    .header p { font-size: 0.7rem; color: var(--text-muted); }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; background: var(--card); padding: 6px; border-radius: 12px; border: 1px solid var(--border); }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; }
+    .tab-btn.active { background: var(--accent); color: #000; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .card h2 { font-size: 1rem; color: var(--yellow); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 0.9rem; }
+    
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    
+    .btn { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; }
+    .btn:active { background: var(--accent-dark); color: #fff; }
+
+    .result-box { background: #020617; border: 1px solid var(--border); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 0.8rem; margin-top: 12px; white-space: pre-wrap; color: var(--text); display: none; }
+    
+    .copy-btn { background: var(--border); color: var(--text); margin-top: 8px; display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>EngineLog</h1>
+    <p>MARPOL & Changeover Assistant</p>
+</div>
+
+<div class="tabs">
+    <button class="tab-btn active" id="tabChangeover">⛽ Changeover</button>
+    <button class="tab-btn" id="tabOrb">📘 ORB Entry</button>
+</div>
+
+<!-- FUEL CHANGEOVER MODULE -->
+<div id="moduleChangeover">
+    <div class="card">
+        <h2>Fuel Changeover Record</h2>
+        
+        <div class="row-2">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="chgDate">
+            </div>
+            <div class="form-group">
+                <label>Position (Lat/Long)</label>
+                <input type="text" id="chgPos" placeholder="e.g. 55°45.0'N 037°37.0'E">
+            </div>
+        </div>
+
+        <div class="row-2">
+            <div class="form-group">
+                <label>Type</label>
+                <select id="chgType">
+                    <option value="HFO to MGO">HFO/VLSFO to MGO/MDO</option>
+                    <option value="MGO to HFO">MGO/MDO to HFO/VLSFO</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sulfur Target (%)</label>
+                <input type="number" id="chgSulfur" step="0.01" value="0.10">
+            </div>
+        </div>
+
+        <div class="row-2">
+            <div class="form-group">
+                <label>Start Time</label>
+                <input type="time" id="chgStart">
+            </div>
+            <div class="form-group">
+                <label>Finish Time</label>
+                <input type="time" id="chgFinish">
+            </div>
+        </div>
+
+        <div class="row-2">
+            <div class="form-group">
+                <label>Start Viscosity (cSt)</label>
+                <input type="number" id="chgViscStart" placeholder="e.g. 380">
+            </div>
+            <div class="form-group">
+                <label>Finish Viscosity (cSt)</label>
+                <input type="number" id="chgViscEnd" placeholder="e.g. 12">
+            </div>
+        </div>
+
+        <button class="btn" id="btnGenerateChangeover">Generate ORB Text</button>
+        
+        <div class="result-box" id="chgResult"></div>
+        <button class="btn copy-btn" id="btnCopyChg">📋 Copy Text</button>
+    </div>
+</div>
+
+<!-- ORB MODULE (Placeholder for next step) -->
+<div id="moduleOrb" style="display:none;">
+    <div class="card">
+        <h2>ORB Entry Generator</h2>
+        <p style="color:var(--text-muted); font-size:0.8rem;">Module under construction. We will add tanks and codes here next.</p>
+    </div>
+</div>
+
+<script>
+    // Инициализация даты (сегодня)
+    document.getElementById('chgDate').valueAsDate = new Date();
+
+    // Переключение вкладок
+    const tabChg = document.getElementById('tabChangeover');
+    const tabOrb = document.getElementById('tabOrb');
+    const modChg = document.getElementById('moduleChangeover');
+    const modOrb = document.getElementById('moduleOrb');
+
+    tabChg.onclick = () => {
+        tabChg.classList.add('active'); tabOrb.classList.remove('active');
+        modChg.style.display = 'block'; modOrb.style.display = 'none';
+    };
+    tabOrb.onclick = () => {
+        tabOrb.classList.add('active'); tabChg.classList.remove('active');
+        modOrb.style.display = 'block'; modChg.style.display = 'none';
+    };
+
+    // Логика генерации записи Changeover
+    document.getElementById('btnGenerateChangeover').onclick = function() {
+        const date = document.getElementById('chgDate').value;
+        const pos = document.getElementById('chgPos').value || 'N/A';
+        const type = document.getElementById('chgType').value;
+        const sulfur = document.getElementById('chgSulfur').value;
+        const start = document.getElementById('chgStart').value;
+        const finish = document.getElementById('chgFinish').value;
+        const viscStart = document.getElementById('chgViscStart').value;
+        const viscEnd = document.getElementById('chgViscEnd').value;
+
+        if(!date || !start || !finish) {
+            alert('Please fill Date, Start and Finish time.');
+            return;
+        }
+
+        // Форматирование даты в DD.MM.YYYY
+        const dParts = date.split('-');
+        const formattedDate = dParts[2] + '.' + dParts[1] + '.' + dParts[0];
+
+        let text = "";
+        text += `${formattedDate}, Position: ${pos}\n`;
+        text += `Commenced fuel oil changeover from ${type.split(' to ')[0]} to ${type.split(' to ')[1]}.\n`;
+        text += `Start Time: ${start}. Initial Viscosity: ${viscStart || 'N/A'} cSt.\n`;
+        text += `Completed fuel oil changeover at ${finish}.\n`;
+        text += `Final Viscosity: ${viscEnd || 'N/A'} cSt. Sulfur content: max ${sulfur}% m/m.\n`;
+        text += `Changeover procedure performed in accordance with vessel's approved changeover plan.`;
+
+        const resBox = document.getElementById('chgResult');
+        const copyBtn = document.getElementById('btnCopyChg');
+        
+        resBox.textContent = text;
+        resBox.style.display = 'block';
+        copyBtn.style.display = 'block';
+    };
+
+    // Копирование текста
+    document.getElementById('btnCopyChg').onclick = function() {
+        const text = document.getElementById('chgResult').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            this.textContent = '✅ Copied!';
+            setTimeout(() => { this.textContent = '📋 Copy Text'; }, 2000);
+        });
+    };
+</script>
+</body>
+</html>

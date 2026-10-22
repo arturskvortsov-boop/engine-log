@@ -37,36 +37,21 @@
     
     .btn { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; }
     .btn:active { background: var(--accent-dark); color: #fff; }
-    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger { background: var(--red); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; }
+    .btn-danger:active { opacity: 0.8; }
 
     .result-box { background: #020617; border: 1px solid var(--accent); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; margin-top: 12px; white-space: pre-wrap; color: var(--text); display: none; line-height: 1.5; }
     .copy-btn { background: var(--border); color: var(--text); margin-top: 8px; display: none; }
     
-    .tank-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .tank-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
     .tank-list-item:last-child { border-bottom: none; }
-        /* ===== ФИКС ДЛЯ МОБИЛЬНЫХ ===== */
+
+    /* МОБИЛЬНЫЙ ФИКС */
     @media (max-width: 600px) {
-        .row-2 {
-            grid-template-columns: 1fr !important; /* Ставим поля в одну колонку */
-            gap: 10px !important;
-        }
+        .row-2 { grid-template-columns: 1fr !important; gap: 10px !important; }
     }
-
-    /* Фикс полей ввода, чтобы они не вылезали за края */
-    input, select, textarea {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        min-width: 0 !important;
-        -webkit-appearance: none;
-        appearance: none;
-    }
-
-    /* Фикс высоты для Date/Time на iOS */
-    input[type="date"], input[type="time"] {
-        min-height: 42px;
-        line-height: normal;
-    }
+    input, select, textarea { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; min-width: 0 !important; -webkit-appearance: none; appearance: none; }
+    input[type="date"], input[type="time"] { min-height: 42px; line-height: normal; }
 </style>
 </head>
 <body>
@@ -99,8 +84,8 @@
             <div class="form-group"><label>Finish Time</label><input type="time" id="chgFinish"></div>
         </div>
         <div class="row-2">
-            <div class="form-group"><label>Start Viscosity (cSt)</label><input type="number" id="chgViscStart" placeholder="e.g. 380"></div>
-            <div class="form-group"><label>Finish Viscosity (cSt)</label><input type="number" id="chgViscEnd" placeholder="e.g. 12"></div>
+            <div class="form-group"><label>Start Viscosity (cSt)</label><input type="number" id="chgViscStart" placeholder="380"></div>
+            <div class="form-group"><label>Finish Viscosity (cSt)</label><input type="number" id="chgViscEnd" placeholder="12"></div>
         </div>
         <button class="btn" id="btnGenChg">Generate Text</button>
         <div class="result-box" id="resChg"></div>
@@ -127,7 +112,6 @@
             </select>
         </div>
 
-        <!-- Dynamic Fields Container -->
         <div id="orbDynamicFields"></div>
 
         <button class="btn" id="btnGenOrb">Generate ORB Entry</button>
@@ -140,26 +124,21 @@
 <div id="tab-tanks" class="tab-content" style="display:none;">
     <div class="card">
         <h2>Vessel Tanks Setup</h2>
-        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">Enter tank names exactly as per IOPPC Supplement.</p>
         
         <div class="form-group">
-            <label>Sludge Tank (Sec 3.1)</label>
-            <input type="text" id="tankSludge" placeholder="e.g. SLUDGE TANK (PORT)">
+            <label>Tank Name (as per IOPPC)</label>
+            <input type="text" id="newTankName" placeholder="e.g. SLUDGE TANK (P)">
         </div>
         <div class="form-group">
-            <label>Bilge Holding Tank (Sec 3.3)</label>
-            <input type="text" id="tankBilge" placeholder="e.g. OILY BILGE TANK (STBD)">
+            <label>Tank Category</label>
+            <select id="newTankType">
+                <option value="sludge">Oil Residue / Sludge (Sec 3.1)</option>
+                <option value="bilge">Bilge Holding (Sec 3.3)</option>
+            </select>
         </div>
-        <div class="form-group">
-            <label>Service Tank (Fuel)</label>
-            <input type="text" id="tankService" placeholder="e.g. WO SERVICE TANK (P)">
-        </div>
-        <div class="form-group">
-            <label>Settling Tank (Fuel)</label>
-            <input type="text" id="tankSettling" placeholder="e.g. WO SETTLING TANK (S)">
-        </div>
+        <button class="btn" id="btnAddTank">+ Add Tank</button>
 
-        <button class="btn" id="btnSaveTanks">Save Tanks</button>
+        <div id="tankList" style="margin-top: 15px;"></div>
     </div>
 </div>
 
@@ -198,25 +177,47 @@
     setupCopy('btnCopyChg', 'resChg');
     setupCopy('btnCopyOrb', 'resOrb');
 
-    // === TANKS SETUP ===
-    const tanks = {
-        sludge: localStorage.getItem('tank_sludge') || 'SLUDGE TANK',
-        bilge: localStorage.getItem('tank_bilge') || 'OILY BILGE TANK',
-        service: localStorage.getItem('tank_service') || 'WO SERVICE TANK',
-        settling: localStorage.getItem('tank_settling') || 'WO SETTLING TANK'
+    // === TANKS MANAGEMENT ===
+    let tanks = JSON.parse(localStorage.getItem('vessel_tanks')) || [];
+
+    function renderTankList() {
+        const list = document.getElementById('tankList');
+        if (!list) return;
+        
+        if (tanks.length === 0) {
+            list.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No tanks added yet. Add your first tank above.</div>';
+            return;
+        }
+        
+        list.innerHTML = tanks.map(t => `
+            <div class="tank-list-item">
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">${t.name}</div>
+                    <div style="font-size:0.7rem; color:var(--text-muted);">${t.type === 'sludge' ? 'Oil Residue (3.1)' : 'Bilge (3.3)'}</div>
+                </div>
+                <button class="btn-danger" onclick="deleteTank('${t.id}')">Delete</button>
+            </div>
+        `).join('');
+    }
+
+    window.deleteTank = function(id) {
+        if(!confirm('Delete this tank?')) return;
+        tanks = tanks.filter(t => t.id !== id);
+        localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
+        renderTankList();
+        populateTankSelects(); // Обновляем списки в ORB
     };
 
-    document.getElementById('tankSludge').value = tanks.sludge;
-    document.getElementById('tankBilge').value = tanks.bilge;
-    document.getElementById('tankService').value = tanks.service;
-    document.getElementById('tankSettling').value = tanks.settling;
-
-    document.getElementById('btnSaveTanks').onclick = () => {
-        localStorage.setItem('tank_sludge', document.getElementById('tankSludge').value);
-        localStorage.setItem('tank_bilge', document.getElementById('tankBilge').value);
-        localStorage.setItem('tank_service', document.getElementById('tankService').value);
-        localStorage.setItem('tank_settling', document.getElementById('tankSettling').value);
-        alert('Tanks saved!');
+    document.getElementById('btnAddTank').onclick = () => {
+        const name = document.getElementById('newTankName').value.trim();
+        const type = document.getElementById('newTankType').value;
+        if (!name) { alert('Enter tank name'); return; }
+        
+        tanks.push({ id: 't_' + Date.now(), name: name, type: type });
+        localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
+        document.getElementById('newTankName').value = '';
+        renderTankList();
+        populateTankSelects();
     };
 
     // === CHANGEOVER GENERATOR ===
@@ -250,15 +251,16 @@
         'C11.4': `
             <div class="row-2">
                 <div class="form-group"><label>Quantity collected (m³)</label><input type="number" id="orbQty" step="0.01"></div>
-                <div class="form-group"><label>Source of sludge</label><input type="text" id="orbSource" placeholder="e.g. FO Separator drain" value="FO Separator"></div>
+                <div class="form-group"><label>Quantity retained (m³)</label><input type="number" id="orbRetained" step="0.01"></div>
             </div>
-            <div class="form-group"><label>Quantity retained in tank (m³)</label><input type="number" id="orbRetained" step="0.01"></div>
+            <div class="form-group"><label>Source Tank (Sludge)</label><select id="orbSourceTank" class="tank-select-sludge"></select></div>
         `,
         'C12.1': `
             <div class="row-2">
                 <div class="form-group"><label>Quantity (m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Quantity retained (m³)</label><input type="number" id="orbRetained" step="0.01"></div>
             </div>
+            <div class="form-group"><label>Source Tank (Sludge)</label><select id="orbSourceTank" class="tank-select-sludge"></select></div>
             <div class="form-group"><label>Receiver (Barge/Truck)</label><input type="text" id="orbReceiver" placeholder="e.g. Barge 'Eco-Service'"></div>
             <div class="form-group"><label>Port Name</label><input type="text" id="orbPort" placeholder="e.g. Singapore"></div>
         `,
@@ -267,13 +269,15 @@
                 <div class="form-group"><label>Quantity transferred (m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Quantity retained in source (m³)</label><input type="number" id="orbRetained" step="0.01"></div>
             </div>
-            <div class="form-group"><label>Destination Tank</label><input type="text" id="orbDest" placeholder="e.g. SLUDGE TANK 2"></div>
+            <div class="form-group"><label>Source Tank (Sludge)</label><select id="orbSourceTank" class="tank-select-sludge"></select></div>
+            <div class="form-group"><label>Destination Tank (Sludge)</label><select id="orbDestTank" class="tank-select-sludge"></select></div>
         `,
         'C12.3': `
             <div class="row-2">
                 <div class="form-group"><label>Quantity incinerated (m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Quantity retained (m³)</label><input type="number" id="orbRetained" step="0.01"></div>
             </div>
+            <div class="form-group"><label>Source Tank (Sludge)</label><select id="orbSourceTank" class="tank-select-sludge"></select></div>
             <div class="form-group"><label>Duration (hours)</label><input type="number" id="orbHours" step="0.1"></div>
         `,
         'D15.1': `
@@ -281,6 +285,7 @@
                 <div class="form-group"><label>Quantity (m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Capacity of tank (m³)</label><input type="number" id="orbCap" step="0.01"></div>
             </div>
+            <div class="form-group"><label>Source Tank (Bilge)</label><select id="orbSourceTank" class="tank-select-bilge"></select></div>
             <div class="row-2">
                 <div class="form-group"><label>Start Time</label><input type="time" id="orbStart"></div>
                 <div class="form-group"><label>Stop Time</label><input type="time" id="orbStop"></div>
@@ -293,7 +298,8 @@
                 <div class="form-group"><label>Quantity (m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Quantity retained (m³)</label><input type="number" id="orbRetained" step="0.01"></div>
             </div>
-            <div class="form-group"><label>Destination Tank</label><input type="text" id="orbDest" placeholder="e.g. SLUDGE TANK"></div>
+            <div class="form-group"><label>Source Tank (Bilge)</label><select id="orbSourceTank" class="tank-select-bilge"></select></div>
+            <div class="form-group"><label>Destination Tank (Sludge)</label><select id="orbDestTank" class="tank-select-sludge"></select></div>
         `,
         'H26.3': `
             <div class="form-group"><label>Port Name</label><input type="text" id="orbPort" placeholder="e.g. Rotterdam"></div>
@@ -315,44 +321,58 @@
     const codeSelect = document.getElementById('orbCodeSelect');
     const dynamicContainer = document.getElementById('orbDynamicFields');
 
+    function populateTankSelects() {
+        const sludgeTanks = tanks.filter(t => t.type === 'sludge');
+        const bilgeTanks = tanks.filter(t => t.type === 'bilge');
+        
+        document.querySelectorAll('.tank-select-sludge').forEach(sel => {
+            if(sludgeTanks.length === 0) sel.innerHTML = '<option value="SLUDGE TANK">SLUDGE TANK (Add tanks in setup)</option>';
+            else sel.innerHTML = sludgeTanks.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+        });
+        
+        document.querySelectorAll('.tank-select-bilge').forEach(sel => {
+            if(bilgeTanks.length === 0) sel.innerHTML = '<option value="OILY BILGE TANK">OILY BILGE TANK (Add tanks in setup)</option>';
+            else sel.innerHTML = bilgeTanks.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+        });
+    }
+
     function renderOrbFields() {
         dynamicContainer.innerHTML = orbFields[codeSelect.value];
+        populateTankSelects(); // Заполняем выпадающие списки после отрисовки HTML
     }
     codeSelect.onchange = renderOrbFields;
-    renderOrbFields(); // Initial load
 
     // === ORB GENERATOR LOGIC ===
     document.getElementById('btnGenOrb').onclick = () => {
-        const dateStr = formatDate(document.getElementById('chgDate').value); // Reuse date from changeover tab if needed, but better ask for it
+        const dateStr = formatDate(document.getElementById('chgDate').value);
         const code = codeSelect.value;
         let text = `Date: ${dateStr}\n`;
         
-        // Get values safely
         const val = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
 
         if(code === 'C11.4') {
             text += `C 11.4\n`;
-            text += `${val('orbQty')} m³ collected from ${val('orbSource')}\n`;
-            text += `Retained in ${tanks.sludge}: ${val('orbRetained')} m³`;
+            text += `${val('orbQty')} m³ collected from ${val('orbSourceTank')}\n`;
+            text += `Retained in ${val('orbSourceTank')}: ${val('orbRetained')} m³`;
         } 
         else if(code === 'C12.1') {
             text += `C 12.1\n`;
-            text += `${val('orbQty')} m³ sludge from ${tanks.sludge}, ${val('orbRetained')} m³ retained.\n`;
+            text += `${val('orbQty')} m³ sludge from ${val('orbSourceTank')}, ${val('orbRetained')} m³ retained.\n`;
             text += `Transferred to ${val('orbReceiver')} during port stay (${val('orbPort')})`;
         }
         else if(code === 'C12.2') {
             text += `C 12.2\n`;
-            text += `${val('orbQty')} m³ sludge transferred from ${tanks.sludge}, ${val('orbRetained')} m³ retained,\n`;
-            text += `to ${val('orbDest')}`;
+            text += `${val('orbQty')} m³ sludge transferred from ${val('orbSourceTank')}, ${val('orbRetained')} m³ retained,\n`;
+            text += `to ${val('orbDestTank')}`;
         }
         else if(code === 'C12.3') {
             text += `C 12.3\n`;
-            text += `${val('orbQty')} m³ sludge from ${tanks.sludge}, ${val('orbRetained')} m³ retained,\n`;
+            text += `${val('orbQty')} m³ sludge from ${val('orbSourceTank')}, ${val('orbRetained')} m³ retained,\n`;
             text += `Burned in Incinerator for ${val('orbHours')} hours`;
         }
         else if(code === 'D15.1') {
             text += `D 13, 14, 15.1\n`;
-            text += `${val('orbQty')} m³ bilge water from ${tanks.bilge}, capacity ${val('orbCap')} m³\n`;
+            text += `${val('orbQty')} m³ bilge water from ${val('orbSourceTank')}, capacity ${val('orbCap')} m³\n`;
             text += `Start: ${val('orbStart')}, Stop: ${val('orbStop')}\n`;
             text += `Through 15 ppm equipment overboard\n`;
             text += `Position start: ${val('orbPosStart')}\n`;
@@ -360,8 +380,8 @@
         }
         else if(code === 'D15.2') {
             text += `D 13, 14, 15.2\n`;
-            text += `${val('orbQty')} m³ bilge water from ${tanks.bilge}, ${val('orbRetained')} m³ retained,\n`;
-            text += `to ${val('orbDest')}`;
+            text += `${val('orbQty')} m³ bilge water from ${val('orbSourceTank')}, ${val('orbRetained')} m³ retained,\n`;
+            text += `to ${val('orbDestTank')}`;
         }
         else if(code === 'H26.3') {
             text += `H 26.1, 26.2, 26.3\n`;
@@ -379,6 +399,11 @@
         document.getElementById('resOrb').style.display = 'block';
         document.getElementById('btnCopyOrb').style.display = 'block';
     };
+
+    // === INIT ===
+    renderTankList();
+    renderOrbFields();
+
 </script>
 </body>
 </html>

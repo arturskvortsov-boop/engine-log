@@ -44,6 +44,29 @@
     
     .tank-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
     .tank-list-item:last-child { border-bottom: none; }
+        /* ===== ФИКС ДЛЯ МОБИЛЬНЫХ ===== */
+    @media (max-width: 600px) {
+        .row-2 {
+            grid-template-columns: 1fr !important; /* Ставим поля в одну колонку */
+            gap: 10px !important;
+        }
+    }
+
+    /* Фикс полей ввода, чтобы они не вылезали за края */
+    input, select, textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    /* Фикс высоты для Date/Time на iOS */
+    input[type="date"], input[type="time"] {
+        min-height: 42px;
+        line-height: normal;
+    }
 </style>
 </head>
 <body>
@@ -65,7 +88,7 @@
         <h2>Fuel Changeover Record</h2>
         <div class="row-2">
             <div class="form-group"><label>Date</label><input type="date" id="chgDate"></div>
-            <div class="form-group"><label>Position (Lat/Long)</label><input type="text" id="chgPos" placeholder="e.g. 55°45.0'N 037°37.0'E"></div>
+            <div class="form-group"><label>Position (Lat/Long)</label><input type="text" id="chgPos" placeholder="Lat / Long"></div>
         </div>
         <div class="row-2">
             <div class="form-group"><label>Type</label><select id="chgType"><option value="HFO/VLSFO to MGO/MDO">HFO/VLSFO to MGO/MDO</option><option value="MGO/MDO to HFO/VLSFO">MGO/MDO to HFO/VLSFO</option></select></div>

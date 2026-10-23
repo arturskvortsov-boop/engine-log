@@ -135,6 +135,7 @@
 
     <div class="card">
         <h2>History</h2>
+        <button class="btn" id="btnExportAll" style="background:var(--border); color:var(--text); margin-bottom:10px;">⬇️ Export All (CSV)</button>
         <div id="orbHistory"></div>
     </div>
 </div>
@@ -460,7 +461,7 @@
             <div class="form-group"><label>Method of Bunkering</label><input type="text" id="orbMethod" placeholder="e.g. via bunker barge"></div>
         `,
         'H26.2': `
-            <div class="form-group"><label>Tank Being Filled</label><select id="orbDestTank" class="tank-select-all"></select></div>
+            <div class="form-group"><label>Tanks Being Filled (Ctrl/Cmd + click = multiple)</label><select id="orbDestTankMulti" class="tank-select-all" multiple size="4" style="height:auto; min-height:120px;"></select></div>
             <div class="form-group"><label>Method of Bunkering</label><input type="text" id="orbMethod" placeholder="e.g. via bunker barge"></div>
         `,
         'H26.3': `
@@ -576,7 +577,16 @@
             text += `H 26.1: BUNKERING START: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\nSTOP: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\nPORT/POSITION: ${val('orbPosStart')}\nMETHOD: ${val('orbMethod')}`;
         }
         else if(code === 'H26.2') {
-            text += `H 26.2: TANK BEING FILLED: ${tank('orbDestTank')}\nMETHOD OF BUNKERING: ${val('orbMethod')}`;
+            const selMulti = document.getElementById('orbDestTankMulti');
+            const chosen = selMulti ? Array.from(selMulti.selectedOptions).map(o => o.text) : [];
+            if(chosen.length === 0) {
+                text += `H 26.2: NO TANK SELECTED\nMETHOD OF BUNKERING: ${val('orbMethod')}`;
+            } else {
+                chosen.forEach((t, i) => {
+                    text += `H 26.2 (${i+1}/${chosen.length}): TANK BEING FILLED: ${t}\nMETHOD OF BUNKERING: ${val('orbMethod')}\n`;
+                });
+                text = text.trimEnd();
+            }
         }
         else if(code === 'H26.3') {
             text += `H 26.3: GRADE: ${val('orbGrade')}\nQUANTITY: ${val('orbQty')} m³\nDENSITY @ 15°C: ${val('orbDensity')} g/cm³\nSULPHUR: ${val('orbSulfur')}% m/m`;
@@ -652,6 +662,21 @@
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `ORB_${code}_${date}.csv`;
+        link.click();
+    };
+
+    document.getElementById('btnExportAll').onclick = () => {
+        if(orbHistory.length === 0) { alert('History is empty'); return; }
+        let csv = 'Code,Date,SavedAt,Entry\n';
+        orbHistory.forEach(h => {
+            const saved = new Date(h.ts).toISOString();
+            csv += `"${h.code}","${h.date}","${saved}","${h.text.replace(/"/g, '""')}"\n`;
+        });
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        const today = new Date().toISOString().slice(0, 10);
+        link.download = `ORB_History_${today}.csv`;
         link.click();
     };
 

@@ -98,6 +98,8 @@
     <button class="tab-btn" data-tab="notes">📝 Notes</button>
     <button class="tab-btn" data-tab="bunkering">⛽ Bunkering</button>
     <button class="tab-btn" data-tab="nightorder">🌙 Night Order</button>
+    <button class="tab-btn" data-tab="lube">🧴 Lube Oil</button>
+    <button class="tab-btn" data-tab="tasks">🛠️ Tasks</button>
 </div>
 
 <!-- TAB 1: CHANGEOVER -->
@@ -233,6 +235,10 @@
             ℹ️ Пройдись по пунктам перед началом приема топлива. Если всё ок — ставь галочку. Всё сохраняется.
         </div>
         <div id="bunkerChecklist"></div>
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <div class="form-group"><label>Add Custom Item (Добавить свой пункт)</label><input type="text" id="newBunkerItem" placeholder="e.g. Company specific form filled"></div>
+            <button class="btn" id="btnAddBunkerItem">+ Add Item</button>
+        </div>
         <button class="btn" id="btnResetBunker" style="background:var(--border); color:var(--text); margin-top:15px;">🔄 Сбросить чек-лист (для новой бункеровки)</button>
     </div>
 
@@ -284,14 +290,11 @@
         
         <div class="form-group">
             <label>Standard Orders (Стандартные приказы)</label>
-            <div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);">
-                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Monitor M/E parameters (Watch for abnormal noise, vibration, temperatures)." checked> Следить за ГД (шум, вибрация, температуры)</label>
-                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Check A/E and generators (Load, temperatures, fuel/oil pressure)." checked> Проверять вспомогательные дизеля (АДГ)</label>
-                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Monitor boiler water level and steam pressure." checked> Следить за уровнем воды и давлением пара в котле</label>
-                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Check operation of purifiers and fuel viscosity." checked> Проверять работу сепараторов и вязкость топлива</label>
-                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Monitor sludge tank levels and pump out if necessary." checked> Следить за уровнем шлама в танках</label>
-                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Maintain bilge levels and check for water ingress." checked> Проверять льяла (отсутствие поступления воды)</label>
-                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Perform fire safety rounds." checked> Обход на предмет пожарной безопасности</label>
+            <div id="nightOrderChecks" style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);"></div>
+            
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <input type="text" id="newNightOrderItem" placeholder="Добавить свой приказ..." style="flex:1; padding:8px; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; font-size:0.8rem;">
+                <button class="btn" id="btnAddNightOrderItem" style="margin-top:0; width:auto; padding:8px 12px; font-size:0.8rem;">+ Add</button>
             </div>
         </div>
 
@@ -299,6 +302,85 @@
         <button class="btn" id="btnGenNo">Generate Night Order</button>
         <div class="result-box" id="resNo"></div>
         <button class="btn copy-btn" id="btnCopyNo">📋 Copy Text</button>
+    </div>
+</div>
+
+<!-- TAB 11: LUBE OIL -->
+<div id="tab-lube" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Cylinder Oil Feed Rate (Цилиндровое масло)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Расчет суточного расхода цилиндрового масла. Введи мощность двигателя (MCR), рекомендованную подачу (из мануала или анализатора) и время.
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Engine Power (Мощность, kW)</label><input type="number" id="coPower" placeholder="e.g. 8000"></div>
+            <div class="form-group"><label>Feed Rate (Подача, g/kWh)</label><input type="number" id="coRate" step="0.01" placeholder="e.g. 1.05"></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Hours (Часы работы)</label><input type="number" id="coHours" value="24"></div>
+            <div class="form-group"><label>Oil Density (Плотность, kg/L)</label><input type="number" id="coDensity" step="0.01" value="0.90"></div>
+        </div>
+        <button class="btn" id="btnCalcCyl">Calculate (Рассчитать)</button>
+        <div class="result-box" id="resCyl"></div>
+    </div>
+
+    <div class="card">
+        <h2>System Oil Top-Up (Циркуляционное масло)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Расчет доливки масла в картер. Укажи текущий уровень и целевую отметку.
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Current Level (Текущий, m³)</label><input type="number" id="soCurrent" step="0.01" placeholder="e.g. 12.5"></div>
+            <div class="form-group"><label>Target Level (Целевой, m³)</label><input type="number" id="soTarget" step="0.01" placeholder="e.g. 15.0"></div>
+        </div>
+        <button class="btn" id="btnCalcSys">Calculate (Рассчитать)</button>
+        <div class="result-box" id="resSys"></div>
+    </div>
+
+    <div class="card">
+        <h2>ROB Tracker (Остатки масел)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Веди учет остатков масел. Система подсветит красным, если остаток упал ниже минимума.
+        </div>
+        <div id="lubeRobList"></div>
+        
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <div class="form-group"><label>Oil Type (Тип масла)</label><select id="newLubeType"><option>Cylinder Oil</option><option>System Oil</option><option>A/E Oil</option><option>Hydraulic Oil</option><option>Other</option></select></div>
+            <div class="row-2">
+                <div class="form-group"><label>Current ROB (Текущий, m³)</label><input type="number" id="newLubeRob" step="0.1" value="0"></div>
+                <div class="form-group"><label>Min ROB (Минимум, m³)</label><input type="number" id="newLubeMin" step="0.1" value="1"></div>
+            </div>
+            <button class="btn" id="btnAddLubeRob">+ Add / Update ROB</button>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 12: TASKS -->
+<div id="tab-tasks" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>+ New Task (Новая задача)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Ставь задачи экипажу. Указывай приоритет и срок. На утренней планёрке можно выгрузить список в CSV.
+        </div>
+        <div class="form-group"><label>Task (Что сделать)</label><input type="text" id="taskName" placeholder="e.g. Очистить льяла в МО"></div>
+        <div class="row-2">
+            <div class="form-group"><label>Assignee (Кому)</label><input type="text" id="taskAssignee" placeholder="e.g. 2nd Eng"></div>
+            <div class="form-group"><label>Priority (Приоритет)</label><select id="taskPriority"><option value="Low">Low (Низкий)</option><option value="Medium">Medium (Средний)</option><option value="High">High (Высокий)</option></select></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Deadline (Срок)</label><input type="date" id="taskDeadline"></div>
+            <div class="form-group"><label>Status (Статус)</label><select id="taskStatus"><option value="Open">Open (Открыта)</option><option value="In Progress">In Progress (В работе)</option><option value="Done">Done (Выполнена)</option></select></div>
+        </div>
+        <button class="btn" id="btnAddTask">+ Add Task</button>
+    </div>
+
+    <div class="card">
+        <h2>Task List (Список задач)</h2>
+        <div class="row-2">
+            <div class="form-group"><label>Filter Status</label><select id="taskFilter"><option value="all">All</option><option value="Open">Open</option><option value="In Progress">In Progress</option><option value="Done">Done</option></select></div>
+            <div class="form-group"><label>&nbsp;</label><button class="btn" id="btnExportTasks" style="margin-top:0; background:var(--border); color:var(--text);">⬇️ Export CSV</button></div>
+        </div>
+        <div id="tasksList"></div>
     </div>
 </div>
 
@@ -1692,9 +1774,26 @@
             <div style="padding:8px 0; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; gap:10px;">
                 <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleBunker('${item.id}', this)" style="margin-top:2px;">
                 <div style="flex:1; font-size:0.85rem; line-height:1.4;">${item.text}</div>
+                <button class="btn-danger" onclick="deleteBunkerItem('${item.id}')" style="padding:2px 6px; font-size:0.7rem; flex:0 0 auto;">Del</button>
             </div>
         `).join('');
     }
+
+    window.deleteBunkerItem = function(id) {
+        if(!confirm('Удалить пункт?')) return;
+        bunkerItems = bunkerItems.filter(i => i.id !== id);
+        localStorage.setItem('el_bunker_items', JSON.stringify(bunkerItems));
+        renderBunkerChecklist();
+    };
+
+    document.getElementById('btnAddBunkerItem').onclick = () => {
+        const text = document.getElementById('newBunkerItem').value.trim();
+        if(!text) return;
+        bunkerItems.push({ id: 'b_c_' + Date.now(), text, checked: false });
+        localStorage.setItem('el_bunker_items', JSON.stringify(bunkerItems));
+        document.getElementById('newBunkerItem').value = '';
+        renderBunkerChecklist();
+    };
 
     window.toggleBunker = function(id, el) {
         const item = bunkerItems.find(i => i.id === id);
@@ -1751,6 +1850,58 @@
     // === NIGHT ORDER ===
     document.getElementById('noDate').valueAsDate = new Date();
 
+    const NO_PREDEFINED = [
+        { text: 'Monitor M/E parameters (Watch for abnormal noise, vibration, temperatures).', checked: true },
+        { text: 'Check A/E and generators (Load, temperatures, fuel/oil pressure).', checked: true },
+        { text: 'Monitor boiler water level and steam pressure.', checked: true },
+        { text: 'Check operation of purifiers and fuel viscosity.', checked: true },
+        { text: 'Monitor sludge tank levels and pump out if necessary.', checked: true },
+        { text: 'Maintain bilge levels and check for water ingress.', checked: true },
+        { text: 'Perform fire safety rounds.', checked: true }
+    ];
+
+    let noChecks = JSON.parse(localStorage.getItem('el_no_checks')) || [];
+    if(noChecks.length === 0) {
+        noChecks = NO_PREDEFINED.map((item, i) => ({ id: 'no_' + i, text: item.text, checked: item.checked }));
+        localStorage.setItem('el_no_checks', JSON.stringify(noChecks));
+    }
+
+    function renderNoChecks() {
+        const box = document.getElementById('nightOrderChecks');
+        if(!box) return;
+        box.innerHTML = noChecks.map(item => `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
+                <label style="display:flex; gap:8px; color:var(--text); font-size:0.8rem; flex:1;">
+                    <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleNoCheck('${item.id}', this)">
+                    ${item.text}
+                </label>
+                <button class="btn-danger" onclick="deleteNoCheck('${item.id}')" style="padding:2px 6px; font-size:0.7rem;">Del</button>
+            </div>
+        `).join('');
+    }
+
+    window.toggleNoCheck = function(id, el) {
+        const item = noChecks.find(i => i.id === id);
+        if(item) item.checked = el.checked;
+        localStorage.setItem('el_no_checks', JSON.stringify(noChecks));
+    };
+
+    window.deleteNoCheck = function(id) {
+        if(!confirm('Удалить приказ?')) return;
+        noChecks = noChecks.filter(i => i.id !== id);
+        localStorage.setItem('el_no_checks', JSON.stringify(noChecks));
+        renderNoChecks();
+    };
+
+    document.getElementById('btnAddNightOrderItem').onclick = () => {
+        const text = document.getElementById('newNightOrderItem').value.trim();
+        if(!text) return;
+        noChecks.push({ id: 'no_c_' + Date.now(), text, checked: true });
+        localStorage.setItem('el_no_checks', JSON.stringify(noChecks));
+        document.getElementById('newNightOrderItem').value = '';
+        renderNoChecks();
+    };
+
     document.getElementById('btnGenNo').onclick = () => {
         const date = formatDate(document.getElementById('noDate').value);
         const pos = document.getElementById('noPos').value || 'N/A';
@@ -1762,10 +1913,9 @@
         text += `To the Duty Engineer:\n\n`;
         text += `Please pay special attention to the following during your watch:\n`;
 
-        const checkboxes = document.querySelectorAll('.no-check');
-        checkboxes.forEach(cb => {
-            if(cb.checked) {
-                text += `- ${cb.value}\n`;
+        noChecks.forEach(item => {
+            if(item.checked) {
+                text += `- ${item.text}\n`;
             }
         });
 
@@ -1781,6 +1931,194 @@
         document.getElementById('btnCopyNo').style.display = 'block';
     };
 
+    // === LUBE OIL ===
+    // 1. Cylinder Oil Feed Rate
+    document.getElementById('btnCalcCyl').onclick = () => {
+        const power = parseFloat(document.getElementById('coPower').value);
+        const rate = parseFloat(document.getElementById('coRate').value);
+        const hours = parseFloat(document.getElementById('coHours').value);
+        const density = parseFloat(document.getElementById('coDensity').value) || 0.90;
+
+        if(isNaN(power) || isNaN(rate) || isNaN(hours)) { alert('Заполни Мощность, Подачу и Часы'); return; }
+
+        const kgPerDay = (power * rate * hours) / 1000;
+        const litersPerDay = kgPerDay / density;
+
+        const res = document.getElementById('resCyl');
+        res.style.display = 'block';
+        res.innerText = 
+            `Engine Power: ${power} kW\n` +
+            `Feed Rate: ${rate} g/kWh\n` +
+            `Duration: ${hours} hours\n\n` +
+            `Total Consumption: ${kgPerDay.toFixed(2)} kg\n` +
+            `Approx. Volume: ${litersPerDay.toFixed(1)} Liters`;
+    };
+
+    // 2. System Oil Top-Up
+    document.getElementById('btnCalcSys').onclick = () => {
+        const current = parseFloat(document.getElementById('soCurrent').value);
+        const target = parseFloat(document.getElementById('soTarget').value);
+
+        if(isNaN(current) || isNaN(target)) { alert('Заполни Текущий и Целевой уровень'); return; }
+        if(target <= current) { alert('Целевой уровень должен быть больше текущего'); return; }
+
+        const diff = target - current;
+        const res = document.getElementById('resSys');
+        res.style.display = 'block';
+        res.innerText = 
+            `Current Level: ${current} m³\n` +
+            `Target Level: ${target} m³\n\n` +
+            `Required Top-Up: ${diff.toFixed(2)} m³`;
+    };
+
+    // 3. ROB Tracker
+    let lubeRobItems = JSON.parse(localStorage.getItem('el_lube_rob')) || [];
+
+    function renderLubeRob() {
+        const box = document.getElementById('lubeRobList');
+        if(!box) return;
+        
+        if(lubeRobItems.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No data.</div>';
+            return;
+        }
+
+        box.innerHTML = lubeRobItems.map((item, index) => {
+            const isLow = item.rob < item.min;
+            return `
+                <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; gap:8px;">
+                        <div style="font-weight:600; font-size:0.85rem;">${item.type}</div>
+                        <button class="btn-danger" onclick="deleteLubeRob(${index})">Del</button>
+                    </div>
+                    <div style="font-size:0.8rem; color:${isLow ? 'var(--red)' : 'var(--text)'};">
+                        ROB: ${item.rob} m³ | Min: ${item.min} m³ ${isLow ? '⚠️ LOW' : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.deleteLubeRob = function(index) {
+        if(!confirm('Удалить запись?')) return;
+        lubeRobItems.splice(index, 1);
+        localStorage.setItem('el_lube_rob', JSON.stringify(lubeRobItems));
+        renderLubeRob();
+    };
+
+    document.getElementById('btnAddLubeRob').onclick = () => {
+        const type = document.getElementById('newLubeType').value;
+        const rob = parseFloat(document.getElementById('newLubeRob').value) || 0;
+        const min = parseFloat(document.getElementById('newLubeMin').value) || 0;
+
+        const existingIndex = lubeRobItems.findIndex(i => i.type === type);
+        
+        if(existingIndex >= 0) {
+            lubeRobItems[existingIndex].rob = rob;
+            lubeRobItems[existingIndex].min = min;
+        } else {
+            lubeRobItems.push({ type, rob, min });
+        }
+
+        localStorage.setItem('el_lube_rob', JSON.stringify(lubeRobItems));
+        document.getElementById('newLubeRob').value = 0;
+        document.getElementById('newLubeMin').value = 1;
+        renderLubeRob();
+    };
+
+    // === TASKS ===
+    let taskItems = JSON.parse(localStorage.getItem('el_tasks')) || [];
+    let taskFilter = 'all';
+
+    function renderTasks() {
+        const box = document.getElementById('tasksList');
+        if(!box) return;
+
+        let filtered = taskItems;
+        if(taskFilter !== 'all') filtered = filtered.filter(t => t.status === taskFilter);
+
+        filtered = filtered.slice().sort((a, b) => {
+            const pMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
+            if(pMap[a.priority] !== pMap[b.priority]) return pMap[b.priority] - pMap[a.priority];
+            if(a.deadline && b.deadline) return new Date(a.deadline) - new Date(b.deadline);
+            return b.ts - a.ts;
+        });
+
+        if(filtered.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No tasks.</div>';
+            return;
+        }
+
+        box.innerHTML = filtered.map(t => {
+            const pColor = t.priority === 'High' ? 'var(--red)' : t.priority === 'Medium' ? 'var(--yellow)' : 'var(--text-muted)';
+            const isDone = t.status === 'Done';
+            return `
+                <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:6px; ${isDone ? 'opacity:0.55;' : ''}">
+                    <div style="display:flex; justify-content:space-between; gap:8px;">
+                        <div style="font-weight:600; font-size:0.85rem; ${isDone ? 'text-decoration:line-through;' : ''}">${t.name}</div>
+                        <button class="btn-danger" onclick="deleteTask('${t.id}')">Del</button>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Assignee: ${t.assignee || '-'} | Deadline: ${t.deadline || '-'}</div>
+                    <div style="font-size:0.75rem; color:${pColor};">Priority: ${t.priority} | Status: <span style="cursor:pointer; text-decoration:underline;" onclick="toggleTaskStatus('${t.id}')">${t.status}</span></div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.deleteTask = function(id) {
+        if(!confirm('Удалить задачу?')) return;
+        taskItems = taskItems.filter(t => t.id !== id);
+        localStorage.setItem('el_tasks', JSON.stringify(taskItems));
+        renderTasks();
+    };
+
+    window.toggleTaskStatus = function(id) {
+        const t = taskItems.find(x => x.id === id);
+        if(!t) return;
+        if(t.status === 'Open') t.status = 'In Progress';
+        else if(t.status === 'In Progress') t.status = 'Done';
+        else t.status = 'Open';
+        localStorage.setItem('el_tasks', JSON.stringify(taskItems));
+        renderTasks();
+    };
+
+    document.getElementById('taskFilter').onchange = function() {
+        taskFilter = this.value;
+        renderTasks();
+    };
+
+    document.getElementById('btnAddTask').onclick = () => {
+        const name = document.getElementById('taskName').value.trim();
+        if(!name) { alert('Enter task name'); return; }
+        taskItems.push({
+            id: 'tk_' + Date.now(),
+            name,
+            assignee: document.getElementById('taskAssignee').value.trim(),
+            priority: document.getElementById('taskPriority').value,
+            deadline: document.getElementById('taskDeadline').value,
+            status: document.getElementById('taskStatus').value,
+            ts: Date.now()
+        });
+        localStorage.setItem('el_tasks', JSON.stringify(taskItems));
+        document.getElementById('taskName').value = '';
+        document.getElementById('taskAssignee').value = '';
+        document.getElementById('taskDeadline').value = '';
+        renderTasks();
+    };
+
+    document.getElementById('btnExportTasks').onclick = () => {
+        if(taskItems.length === 0) { alert('No tasks'); return; }
+        let csv = 'Task,Assignee,Priority,Deadline,Status\n';
+        taskItems.forEach(t => {
+            csv += `"${(t.name||'').replace(/"/g,'""')}","${t.assignee||''}","${t.priority}","${t.deadline||''}","${t.status}"\n`;
+        });
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Tasks_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    };
+
     // === INIT ===
     renderTankList();
     renderOrbFields();
@@ -1792,6 +2130,9 @@
     renderWarranty();
     renderNotes();
     renderBunkerChecklist();
+    renderLubeRob();
+    renderTasks();
+    renderNoChecks();
 
 </script>
 </body>

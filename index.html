@@ -66,17 +66,76 @@
     }
 
     /* SUB-TABS (Spares) */
-    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .tabs::-webkit-scrollbar { display: none; }
-    
-    .sub-tab-btn { flex: 0 0 auto; padding: 8px 12px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
-    .sub-tab-btn.active { background: var(--accent); color: #000; }
-    
-    .main-tab-btn { flex: 0 0 auto; padding: 10px 14px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
-    .main-tab-btn.active { background: var(--yellow); color: #000; }
-    
-    #globalSubTabs { display: none; margin-top: -12px; margin-bottom: 20px; background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px; }
+    /* НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (GLASSMORPHISM) */
+    .main-nav {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 10px 16px 10px;
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid rgba(255,255,255,0.08);
+        z-index: 1000;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+    }
+    .main-tab-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.65rem;
+        transition: all 0.3s ease;
+        padding: 6px 0;
+        border-radius: 10px;
+    }
+    .main-tab-btn span { font-size: 1.2rem; transition: transform 0.3s; }
+    .main-tab-btn.active { color: var(--yellow); }
+    .main-tab-btn.active span { transform: translateY(-2px); filter: drop-shadow(0 0 8px var(--yellow)); }
+
+    /* ВЕРХНИЕ ПОД-ВКЛАДКИ (iOS СЕГМЕНТ-КОНТРОЛ) */
+    #globalSubTabs {
+        display: none;
+        margin-bottom: 20px;
+        background: var(--card);
+        padding: 4px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 4px;
+    }
     #globalSubTabs::-webkit-scrollbar { display: none; }
+    .sub-tab-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+    .sub-tab-btn.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent);
+        box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
+    
+    /* Отступ снизу, чтобы нижнее меню не перекрывало контент */
+    body { padding-bottom: 100px !important; }
 
     /* INVENTORY FLAGS */
     .inv-warning { color: var(--red); font-weight: 700; }
@@ -96,14 +155,16 @@
     <p>MARPOL & Changeover Assistant</p>
 </div>
 
-<div class="tabs" style="background:transparent; border:none; padding:0; margin-bottom:10px;">
-    <button class="main-tab-btn active" data-group="marpol">📘 MARPOL</button>
-    <button class="main-tab-btn" data-group="engine">⚙️ Engine</button>
-    <button class="main-tab-btn" data-group="newbuild">📋 Newbuild</button>
-    <button class="main-tab-btn" data-group="admin">📦 Admin</button>
-    <button class="main-tab-btn" data-group="emergency">🚨 Emergency</button>
-</div>
 <div id="globalSubTabs"></div>
+
+<!-- НИЖНЯЯ ПАНЕЛЬ (Меню категорий) -->
+<div class="main-nav">
+    <button class="main-tab-btn active" data-group="marpol"><span>📘</span>MARPOL</button>
+    <button class="main-tab-btn" data-group="engine"><span>⚙️</span>Engine</button>
+    <button class="main-tab-btn" data-group="newbuild"><span>📋</span>Newbuild</button>
+    <button class="main-tab-btn" data-group="admin"><span>📦</span>Admin</button>
+    <button class="main-tab-btn" data-group="emergency"><span>🚨</span>Emergency</button>
+</div>
 
 <!-- TAB 1: CHANGEOVER -->
 <div id="tab-chg" class="tab-content">
@@ -720,12 +781,12 @@
         marpol: [
             { id: 'chg', label: '⛽ Changeover' },
             { id: 'orb', label: '📘 ORB Gen' },
-            { id: 'bunkering', label: '⛽ Bunkering' },
+            { id: 'bunkering', label: '⛽ Bunker' },
             { id: 'tanks', label: '⚙️ Tanks' }
         ],
         engine: [
-            { id: 'fuel', label: '🧮 Fuel Calc' },
-            { id: 'lube', label: '🧴 Lube Oil' },
+            { id: 'fuel', label: '🧮 Fuel' },
+            { id: 'lube', label: '🧴 Lube' },
             { id: 'nightorder', label: '🌙 Night Order' },
             { id: 'tasks', label: '🛠️ Tasks' }
         ],

@@ -101,24 +101,27 @@
 <!-- TAB 1: CHANGEOVER -->
 <div id="tab-chg" class="tab-content">
     <div class="card">
-        <h2>Fuel Changeover Record</h2>
-        <div class="row-2">
-            <div class="form-group"><label>Date</label><input type="date" id="chgDate"></div>
-            <div class="form-group"><label>Position (Lat/Long)</label><input type="text" id="chgPos" placeholder="Lat / Long"></div>
+        <h2>Fuel Changeover Record (Запись о смене топлива)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Генератор текста для судового журнала. Укажи координаты, время (GMT или LT) и вязкость до/после.
         </div>
         <div class="row-2">
-            <div class="form-group"><label>Type</label><select id="chgType"><option value="HFO/VLSFO to MGO/MDO">HFO/VLSFO to MGO/MDO</option><option value="MGO/MDO to HFO/VLSFO">MGO/MDO to HFO/VLSFO</option></select></div>
-            <div class="form-group"><label>Sulfur Target (%)</label><input type="number" id="chgSulfur" step="0.01" value="0.10"></div>
+            <div class="form-group"><label>Date (Дата)</label><input type="date" id="chgDate"></div>
+            <div class="form-group"><label>Position (Координаты Lat/Long)</label><input type="text" id="chgPos" placeholder="Lat / Long"></div>
         </div>
         <div class="row-2">
-            <div class="form-group"><label>Start Time</label><input type="time" id="chgStart"></div>
-            <div class="form-group"><label>Finish Time</label><input type="time" id="chgFinish"></div>
+            <div class="form-group"><label>Type (Тип перехода)</label><select id="chgType"><option value="HFO/VLSFO to MGO/MDO">HFO/VLSFO to MGO/MDO</option><option value="MGO/MDO to HFO/VLSFO">MGO/MDO to HFO/VLSFO</option></select></div>
+            <div class="form-group"><label>Sulfur Target (Целевая сера, %)</label><input type="number" id="chgSulfur" step="0.01" value="0.10"></div>
         </div>
         <div class="row-2">
-            <div class="form-group"><label>Start Viscosity (cSt)</label><input type="number" id="chgViscStart" placeholder="380"></div>
-            <div class="form-group"><label>Finish Viscosity (cSt)</label><input type="number" id="chgViscEnd" placeholder="12"></div>
+            <div class="form-group"><label>Start Time (Время начала)</label><input type="time" id="chgStart"></div>
+            <div class="form-group"><label>Finish Time (Время окончания)</label><input type="time" id="chgFinish"></div>
         </div>
-        <button class="btn" id="btnGenChg">Generate Text</button>
+        <div class="row-2">
+            <div class="form-group"><label>Start Viscosity (Вязкость до, cSt)</label><input type="number" id="chgViscStart" placeholder="380"></div>
+            <div class="form-group"><label>Finish Viscosity (Вязкость после, cSt)</label><input type="number" id="chgViscEnd" placeholder="12"></div>
+        </div>
+        <button class="btn" id="btnGenChg">Generate Text (Сгенерировать)</button>
         <div class="result-box" id="resChg"></div>
         <button class="btn copy-btn" id="btnCopyChg">📋 Copy Text</button>
     </div>
@@ -128,6 +131,9 @@
 <div id="tab-orb" class="tab-content" style="display:none;">
     <div class="card">
         <h2>ORB Entry Generator</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Выбери код операции, заполни поля и нажми "Generate". Получишь готовый текст на английском по MEPC.1/Circ.736. Можно скопировать или сохранить в историю.
+        </div>
         
         <div class="form-group">
             <label>Select Operation Code (Выбор кода операции)</label>
@@ -155,7 +161,7 @@
 
         <div id="orbDynamicFields"></div>
 
-                <button class="btn" id="btnGenOrb">Generate ORB Entry</button>
+        <button class="btn" id="btnGenOrb">Generate ORB Entry</button>
         <div class="result-box" id="resOrb"></div>
         <button class="btn copy-btn" id="btnCopyOrb">📋 Copy Text</button>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
@@ -175,6 +181,9 @@
 <div id="tab-fuel" class="tab-content" style="display:none;">
     <div class="card">
         <h2>VCF / Density Correction</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Введи плотность (Density) и температуру (Temp). Система подтянет коэффициент из таблицы Excel и выдаст скорректированный объем (Corrected Volume).
+        </div>
         <div class="row-2">
             <div class="form-group"><label>Density @ 15°C (g/cm³)</label><input type="number" id="fcDensity" step="0.001" value="0.9455"></div>
             <div class="form-group"><label>Temperature (°C)</label><input type="number" id="fcTemp" step="0.1" value="15"></div>
@@ -189,6 +198,9 @@
 
     <div class="card">
         <h2>Flow Meter Consumption</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Расчет расхода топлива по флоуметру. Укажи показания до/после, плотность и температуру. Результат — в метрических тоннах (MT).
+        </div>
         <div class="form-group">
             <label>Meter Line</label>
             <select id="fcLine">
@@ -211,10 +223,39 @@
     </div>
 </div>
 
+<!-- TAB 4: TANKS SETUP -->
+<div id="tab-tanks" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Vessel Tanks Setup</h2>
+        
+        <div class="form-group">
+            <label>Tank Name (as per IOPPC)</label>
+            <input type="text" id="newTankName" placeholder="e.g. SLUDGE TANK">
+        </div>
+        <div class="form-group">
+            <label>Location / Frame No. (Optional)</label>
+            <input type="text" id="newTankLoc" placeholder="e.g. FR NO. 21-28 PORT">
+        </div>
+        <div class="form-group">
+            <label>Tank Category</label>
+            <select id="newTankType">
+                <option value="sludge">Oil Residue / Sludge (Sec 3.1)</option>
+                <option value="bilge">Bilge Holding (Sec 3.3)</option>
+            </select>
+        </div>
+        <button class="btn" id="btnAddTank">+ Add Tank</button>
+
+        <div id="tankList" style="margin-top: 15px;"></div>
+    </div>
+</div>
+
 <!-- TAB 5: DELIVERY -->
 <div id="tab-delivery" class="tab-content" style="display:none;">
     <div class="card">
         <h2>Delivery Checklist (Приёмка судна)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Отмечай галочками проверенное. Если есть замечание от верфи/супера — пиши в поле "Note" под пунктом. Всё сохраняется автоматически.
+        </div>
         <div id="deliverySections"></div>
         <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
             <div class="form-group"><label>Add Custom Item (Добавить свой пункт)</label><input type="text" id="newDeliveryItem" placeholder="Item description / Описание"></div>
@@ -226,6 +267,9 @@
     </div>
     <div class="card">
         <h2>Punch List (Список дефектов)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ⚠️ Записывай сюда ВСЁ, что нашел при приемке. Если дефект Critical (критичный) — верфь обязана исправить до выхода из дока. Выгружай CSV для отправки суперинтенденту.
+        </div>
         <div id="punchList"></div>
         <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
             <div class="row-2">
@@ -234,8 +278,8 @@
             </div>
             <div class="form-group"><label>Description (Описание)</label><textarea id="plDescription" placeholder="What's wrong / Что случилось"></textarea></div>
             <div class="row-2">
-                <div class="form-group"><label>Severity (Важность)</label><select id="plSeverity"><option>Critical (Критично)</option><option>Major (Серьезно)</option><option>Minor (Мелочь)</option></select></div>
-                <div class="form-group"><label>Status (Статус)</label><select id="plStatus"><option>Open (Открыт)</option><option>Fixed (Исправлен)</option><option>Accepted as-is (Принято как есть)</option></select></div>
+                <div class="form-group"><label>Severity (Важность)</label><select id="plSeverity"><option value="Critical">Critical (Критично)</option><option value="Major">Major (Серьезно)</option><option value="Minor">Minor (Мелочь)</option></select></div>
+                <div class="form-group"><label>Status (Статус)</label><select id="plStatus"><option value="Open">Open (Открыт)</option><option value="Fixed">Fixed (Исправлен)</option><option value="Accepted as-is">Accepted as-is (Принято как есть)</option></select></div>
             </div>
             <div class="form-group"><label>Responsible (Ответственный)</label><input type="text" id="plWho" placeholder="e.g. HYUNDAI"></div>
             <button class="btn" id="btnAddPunch">+ Add Defect (Добавить дефект)</button>
@@ -255,6 +299,9 @@
     <div id="sub-inv" class="sub-content">
         <div class="card">
             <h2>Inventory (Склад)</h2>
+            <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+                ℹ️ Веди учет запчастей. Система сама подсветит красным, если (На борту + Заказано) меньше Минимума. Критичные позиции помечай звездочкой ★.
+            </div>
             <div class="form-group">
                 <label>Filter (Фильтр)</label>
                 <select id="invFilter">
@@ -296,6 +343,9 @@
     <div id="sub-req" class="sub-content" style="display:none;">
         <div class="card">
             <h2>Requisition (Заявка) — Header (Шапка)</h2>
+            <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+                ℹ️ Заполни шапку. Если срочно (Urgent/Emergency) — укажи это. Потом добавь позиции вручную или из списка "ниже минимума".
+            </div>
             <div class="form-group"><label>Vessel (Судно)</label><input type="text" id="reqVessel" placeholder="e.g. MV NONDAS"></div>
             <div class="row-2">
                 <div class="form-group"><label>Port (Порт)</label><input type="text" id="reqPort" placeholder="e.g. Rotterdam"></div>
@@ -303,7 +353,7 @@
             </div>
             <div class="row-2">
                 <div class="form-group"><label>Date (Дата)</label><input type="date" id="reqDate"></div>
-                <div class="form-group"><label>Urgency (Срочность)</label><select id="reqUrgency"><option>Routine (Планово)</option><option>Urgent (Срочно)</option><option>Emergency (Аварийно)</option></select></div>
+                <div class="form-group"><label>Urgency (Срочность)</label><select id="reqUrgency"><option value="Routine">Routine (Планово)</option><option value="Urgent">Urgent (Срочно)</option><option value="Emergency">Emergency (Аварийно)</option></select></div>
             </div>
             <div class="form-group"><label>Remarks (Примечания)</label><textarea id="reqRemarks" placeholder="Delivery instructions..."></textarea></div>
         </div>
@@ -328,7 +378,10 @@
         </div>
 
         <div class="card">
-            <h2>From Inventory (Below Min)</h2>
+            <h2>From Inventory (Ниже минимума)</h2>
+            <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+                ℹ️ Здесь собраны позиции, которых не хватает. Нажми "+ Add" — система сама подставит нужное количество в заявку.
+            </div>
             <div id="reqInvPicker"></div>
         </div>
 
@@ -351,7 +404,7 @@
     <div class="card">
         <h2>+ Add Claim (Добавить гарантийный случай)</h2>
         <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
-            ⚠️ Заполняй сразу, как только выявил дефект. Укажи Ref No. из сервисного репорта и срок гарантии (Expiry), чтобы не прощёлкать.
+            ⚠️ На новом судне гарантия 12–18 месяцев. Заполняй сразу, как выявил дефект. Укажи Ref No. из сервисного репорта и срок гарантии (Expiry), чтобы не прощёлкать. Если до истечения < 30 дней, дата подсветится красным.
         </div>
         <div class="form-group"><label>Item (Что сломалось)</label><input type="text" id="wItem" placeholder="e.g. ME Cylinder Head #3"></div>
         <div class="row-2">
@@ -367,7 +420,7 @@
             <div class="form-group"><label>Ref No. (Номер репорта)</label><input type="text" id="wRefNo" placeholder="Номер письма/репорта"></div>
             <div class="form-group"><label>Warranty Expiry (Конец гарантии)</label><input type="date" id="wExpiry"></div>
         </div>
-        <div class="form-group"><label>Status (Статус решения)</label><select id="wStatus"><option>Open (Открыт)</option><option>Claimed (Заявлен)</option><option>Resolved (Решён)</option><option>Rejected (Отклонён)</option></select></div>
+        <div class="form-group"><label>Status (Статус решения)</label><select id="wStatus"><option value="Open">Open (Открыт)</option><option value="Claimed">Claimed (Заявлен)</option><option value="Resolved">Resolved (Решён)</option><option value="Rejected">Rejected (Отклонён)</option></select></div>
         <div class="form-group"><label>Notes</label><textarea id="wNotes"></textarea></div>
         <button class="btn" id="btnAddWarranty">+ Add Claim</button>
     </div>
@@ -377,6 +430,9 @@
 <div id="tab-notes" class="tab-content" style="display:none;">
     <div class="card">
         <h2>+ New Note (Новая заметка)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Быстрая запись: что сказал инспектор, что спросить у супера, о чем напомнить вахте. Выбери категорию и нажми "Add Note".
+        </div>
         <div class="row-2">
             <div class="form-group"><label>Category (Категория)</label><select id="noteCategory">
                 <option value="Inspector">🔍 Inspector (Инспектор / PSC)</option>
@@ -409,32 +465,6 @@
         </div>
         <div id="notesList"></div>
         <button class="btn" id="btnExportNotes" style="background:var(--border); color:var(--text);">⬇️ Export CSV</button>
-    </div>
-</div>
-
-<!-- TAB 4: TANKS SETUP -->
-<div id="tab-tanks" class="tab-content" style="display:none;">
-    <div class="card">
-        <h2>Vessel Tanks Setup</h2>
-        
-        <div class="form-group">
-            <label>Tank Name (as per IOPPC)</label>
-            <input type="text" id="newTankName" placeholder="e.g. SLUDGE TANK">
-        </div>
-        <div class="form-group">
-            <label>Location / Frame No. (Optional)</label>
-            <input type="text" id="newTankLoc" placeholder="e.g. FR NO. 21-28 PORT">
-        </div>
-        <div class="form-group">
-            <label>Tank Category</label>
-            <select id="newTankType">
-                <option value="sludge">Oil Residue / Sludge (Sec 3.1)</option>
-                <option value="bilge">Bilge Holding (Sec 3.3)</option>
-            </select>
-        </div>
-        <button class="btn" id="btnAddTank">+ Add Tank</button>
-
-        <div id="tankList" style="margin-top: 15px;"></div>
     </div>
 </div>
 
@@ -675,7 +705,7 @@
         `,
         'H26.4': `
             <div class="form-group"><label>Grade of Lubricating Oil (Сорт масла)</label><input type="text" id="orbGrade" placeholder="e.g. SAE 40"></div>
-            <div class="form-group"><label>Quantity Received (Принято, m³)</label><input type="number" id="orbQty" step="0.01"></div>
+            <div class="form-group"><label>Quantity Received (Принято, м³)</label><input type="number" id="orbQty" step="0.01"></div>
         `,
         'I_ALARM': `
             <div class="row-2">

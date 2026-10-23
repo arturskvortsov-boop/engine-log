@@ -66,12 +66,17 @@
     }
 
     /* SUB-TABS (Spares) */
-    .sub-tab-btn { flex: 1; padding: 6px 8px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.7rem; white-space: nowrap; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tabs::-webkit-scrollbar { display: none; }
+    
+    .sub-tab-btn { flex: 0 0 auto; padding: 8px 12px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
     .sub-tab-btn.active { background: var(--accent); color: #000; }
     
-    .main-tab-btn { flex: 1; padding: 10px 8px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
+    .main-tab-btn { flex: 0 0 auto; padding: 10px 14px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
     .main-tab-btn.active { background: var(--yellow); color: #000; }
-    #globalSubTabs { display: none; margin-top: -12px; margin-bottom: 20px; background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; }
+    
+    #globalSubTabs { display: none; margin-top: -12px; margin-bottom: 20px; background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px; }
+    #globalSubTabs::-webkit-scrollbar { display: none; }
 
     /* INVENTORY FLAGS */
     .inv-warning { color: var(--red); font-weight: 700; }
@@ -417,35 +422,17 @@
 
     <div class="card">
         <h2>Emergency Procedures (Памятка)</h2>
-        <details style="margin-bottom:10px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
-            <summary style="cursor:pointer; font-weight:600; color:var(--red);">🔥 FIRE IN ENGINE ROOM</summary>
-            <div style="margin-top:10px; font-size:0.8rem; line-height:1.4;">
-                1. Sound the alarm (непрерывный звонок).<br>
-                2. Stop M/E and generators (если безопасно).<br>
-                3. Activate fixed firefighting system (CO2/Foam) after confirming no personnel.<br>
-                4. Close all doors, vents, and skylights.<br>
-                5. Muster crew and account for everyone.
-            </div>
-        </details>
-        <details style="margin-bottom:10px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
-            <summary style="cursor:pointer; font-weight:600; color:var(--yellow);">⚡ BLACKOUT</summary>
-            <div style="margin-top:10px; font-size:0.8rem; line-height:1.4;">
-                1. Check Emergency Generator started and connected.<br>
-                2. Notify Bridge.<br>
-                3. Investigate cause (overload, trip, fuel issue).<br>
-                4. Restore power step-by-step (avoid large loads immediately).
-            </div>
-        </details>
-        <details style="margin-bottom:10px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
-            <summary style="cursor:pointer; font-weight:600; color:var(--accent);">🌊 FLOODING</summary>
-            <div style="margin-top:10px; font-size:0.8rem; line-height:1.4;">
-                1. General alarm.<br>
-                2. Locate the leak (sounding, visual).<br>
-                3. Start emergency bilge pump.<br>
-                4. Close watertight doors.<br>
-                5. Inform Master.
-            </div>
-        </details>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Настрой эти памятки под свои обязанности (Muster List) и судовые процедуры.
+        </div>
+        
+        <div id="emergencyProceduresList"></div>
+
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <div class="form-group"><label>Title (Название / Тревога)</label><input type="text" id="newEmerTitle" placeholder="e.g. 🔥 FIRE IN ENGINE ROOM"></div>
+            <div class="form-group"><label>Actions (Текст обязанностей)</label><textarea id="newEmerText" placeholder="1. Emergency squad прибыл в МО.&#10;2. Электричество в зоне очага отключено.&#10;3. ..." style="min-height:100px;"></textarea></div>
+            <button class="btn" id="btnAddEmerProcedure">+ Save Procedure</button>
+        </div>
     </div>
 </div>
 
@@ -2376,6 +2363,93 @@
         renderFaults();
     };
 
+    // === EMERGENCY PROCEDURES ===
+    const DEFAULT_PROCEDURES = [
+        { 
+            id: 'ep_1', 
+            title: '🔥 FIRE IN ENGINE ROOM', 
+            text: '1. Sound the alarm (непрерывный звонок).\n2. All emergency squad members arrived in engine room.\n3. Power in the fire zone disconnected.\n4. Stop M/E and generators (если безопасно).\n5. Activate fixed firefighting system after confirming no personnel.\n6. Close all doors, vents, and skylights.' 
+        },
+        { 
+            id: 'ep_2', 
+            title: '⚡ BLACKOUT', 
+            text: '1. Check Emergency Generator started and connected.\n2. Notify Bridge.\n3. Investigate cause (overload, trip, fuel issue).\n4. Restore power step-by-step (avoid large loads immediately).' 
+        },
+        { 
+            id: 'ep_3', 
+            title: '🌊 FLOODING', 
+            text: '1. General alarm.\n2. Locate the leak (sounding, visual).\n3. Start emergency bilge pump.\n4. Close watertight doors.\n5. Inform Master.' 
+        }
+    ];
+
+    let emergProcedures = JSON.parse(localStorage.getItem('el_emergency_procedures')) || [];
+    if(emergProcedures.length === 0) {
+        emergProcedures = [...DEFAULT_PROCEDURES];
+        localStorage.setItem('el_emergency_procedures', JSON.stringify(emergProcedures));
+    }
+
+    let editingProcedureId = null;
+
+    function renderEmergencyProcedures() {
+        const box = document.getElementById('emergencyProceduresList');
+        if(!box) return;
+        
+        if(emergProcedures.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No procedures.</div>';
+            return;
+        }
+
+        box.innerHTML = emergProcedures.map(p => `
+            <details style="margin-bottom:10px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
+                <summary style="cursor:pointer; font-weight:600; color:var(--accent); display:flex; justify-content:space-between; align-items:center;">
+                    <span>${p.title}</span>
+                </summary>
+                <div style="margin-top:10px; font-size:0.8rem; line-height:1.4; white-space:pre-wrap; color:var(--text);">${p.text}</div>
+                <div style="margin-top:10px; display:flex; gap:8px;">
+                    <button class="btn" style="margin-top:0; padding:6px; font-size:0.75rem; background:var(--border); color:var(--text);" onclick="editEmerProcedure('${p.id}')">✏️ Edit</button>
+                    <button class="btn-danger" style="padding:6px 12px; font-size:0.75rem;" onclick="deleteEmerProcedure('${p.id}')">Del</button>
+                </div>
+            </details>
+        `).join('');
+    }
+
+    window.deleteEmerProcedure = function(id) {
+        if(!confirm('Удалить памятку?')) return;
+        emergProcedures = emergProcedures.filter(p => p.id !== id);
+        localStorage.setItem('el_emergency_procedures', JSON.stringify(emergProcedures));
+        renderEmergencyProcedures();
+    };
+
+    window.editEmerProcedure = function(id) {
+        const p = emergProcedures.find(x => x.id === id);
+        if(!p) return;
+        document.getElementById('newEmerTitle').value = p.title;
+        document.getElementById('newEmerText').value = p.text;
+        editingProcedureId = id;
+        document.getElementById('btnAddEmerProcedure').textContent = '💾 Update Procedure';
+        document.getElementById('newEmerTitle').focus();
+    };
+
+    document.getElementById('btnAddEmerProcedure').onclick = () => {
+        const title = document.getElementById('newEmerTitle').value.trim();
+        const text = document.getElementById('newEmerText').value.trim();
+        if(!title || !text) { alert('Заполни название и текст'); return; }
+
+        if(editingProcedureId) {
+            const p = emergProcedures.find(x => x.id === editingProcedureId);
+            if(p) { p.title = title; p.text = text; }
+            editingProcedureId = null;
+            document.getElementById('btnAddEmerProcedure').textContent = '+ Save Procedure';
+        } else {
+            emergProcedures.push({ id: 'ep_' + Date.now(), title, text });
+        }
+
+        localStorage.setItem('el_emergency_procedures', JSON.stringify(emergProcedures));
+        document.getElementById('newEmerTitle').value = '';
+        document.getElementById('newEmerText').value = '';
+        renderEmergencyProcedures();
+    };
+
     // === EMERGENCY CONTACTS ===
     let emergContacts = JSON.parse(localStorage.getItem('el_emergency')) || [];
 
@@ -2423,6 +2497,7 @@
     renderSeaTrial();
     renderFaults();
     renderEmergency();
+    renderEmergencyProcedures();
     
     document.getElementById('stDate').value = new Date().toISOString().slice(0, 16);
 

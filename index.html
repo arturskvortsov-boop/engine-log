@@ -96,6 +96,8 @@
     <button class="tab-btn" data-tab="spares">📦 Spares</button>
     <button class="tab-btn" data-tab="warranty">🛡️ Warranty</button>
     <button class="tab-btn" data-tab="notes">📝 Notes</button>
+    <button class="tab-btn" data-tab="bunkering">⛽ Bunkering</button>
+    <button class="tab-btn" data-tab="nightorder">🌙 Night Order</button>
 </div>
 
 <!-- TAB 1: CHANGEOVER -->
@@ -220,6 +222,83 @@
         </div>
         <button class="btn" id="btnCalcCons">Calculate Consumption</button>
         <div class="result-box" id="resCons"></div>
+    </div>
+</div>
+
+<!-- TAB 9: BUNKERING -->
+<div id="tab-bunkering" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Bunkering Checklist (Чек-лист бункеровки)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Пройдись по пунктам перед началом приема топлива. Если всё ок — ставь галочку. Всё сохраняется.
+        </div>
+        <div id="bunkerChecklist"></div>
+        <button class="btn" id="btnResetBunker" style="background:var(--border); color:var(--text); margin-top:15px;">🔄 Сбросить чек-лист (для новой бункеровки)</button>
+    </div>
+
+    <div class="card">
+        <h2>Letter of Protest Generator</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ⚠️ Если бункеровщик недолил топливо, опоздал или привез плохое качество — сгенерируй протест и отправь суперинтенденту.
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Date (Дата)</label><input type="date" id="lopDate"></div>
+            <div class="form-group"><label>Time (Время)</label><input type="time" id="lopTime"></div>
+        </div>
+        <div class="form-group"><label>Vessel Name (Название судна)</label><input type="text" id="lopVessel" placeholder="e.g. MV NONDAS"></div>
+        <div class="row-2">
+            <div class="form-group"><label>Port (Порт)</label><input type="text" id="lopPort" placeholder="e.g. Rotterdam"></div>
+            <div class="form-group"><label>Supplier / Barge (Бункеровщик)</label><input type="text" id="lopSupplier" placeholder="e.g. Barge 'Eco-Service'"></div>
+        </div>
+        <div class="form-group">
+            <label>Reason (Причина)</label>
+            <select id="lopReason">
+                <option value="Shortage">Shortage (Недолив / Недостача)</option>
+                <option value="Quality">Quality (Плохое качество)</option>
+                <option value="Delay">Delay (Задержка подачи)</option>
+                <option value="Other">Other (Другое)</option>
+            </select>
+        </div>
+        <div class="form-group"><label>Details (Детали инцидента)</label><textarea id="lopDetails" placeholder="Например: Bunker quantity on BDN is 500 MT, but ship's measurement shows 485 MT..."></textarea></div>
+        <button class="btn" id="btnGenLop">Generate Letter of Protest</button>
+        <div class="result-box" id="resLop"></div>
+        <button class="btn copy-btn" id="btnCopyLop">📋 Copy Text</button>
+    </div>
+</div>
+
+<!-- TAB 10: NIGHT ORDER -->
+<div id="tab-nightorder" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Night Order Generator (Ночные приказы)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Заполни обстановку и выбери задачи для вахтенного механика. На выходе получишь готовый текст для книги приказов.
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Date (Дата)</label><input type="date" id="noDate"></div>
+            <div class="form-group"><label>Position (Координаты / Порт)</label><input type="text" id="noPos" placeholder="e.g. LAT 12N LONG 45E"></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Weather (Погода)</label><input type="text" id="noWeather" placeholder="e.g. Wind NE 15kts, Sea 2"></div>
+            <div class="form-group"><label>Status (Режим)</label><select id="noStatus"><option value="At Sea">At Sea (В море)</option><option value="At Anchor">At Anchor (На якоре)</option><option value="In Port">In Port (В порту)</option></select></div>
+        </div>
+        
+        <div class="form-group">
+            <label>Standard Orders (Стандартные приказы)</label>
+            <div style="background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);">
+                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Monitor M/E parameters (Watch for abnormal noise, vibration, temperatures)." checked> Следить за ГД (шум, вибрация, температуры)</label>
+                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Check A/E and generators (Load, temperatures, fuel/oil pressure)." checked> Проверять вспомогательные дизеля (АДГ)</label>
+                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Monitor boiler water level and steam pressure." checked> Следить за уровнем воды и давлением пара в котле</label>
+                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Check operation of purifiers and fuel viscosity." checked> Проверять работу сепараторов и вязкость топлива</label>
+                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Monitor sludge tank levels and pump out if necessary." checked> Следить за уровнем шлама в танках</label>
+                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Maintain bilge levels and check for water ingress." checked> Проверять льяла (отсутствие поступления воды)</label>
+                <label style="display:flex; gap:8px; margin-bottom:8px; color:var(--text);"><input type="checkbox" class="no-check" value="Perform fire safety rounds." checked> Обход на предмет пожарной безопасности</label>
+            </div>
+        </div>
+
+        <div class="form-group"><label>Additional Instructions (Дополнительно)</label><textarea id="noExtra" placeholder="Например: Обратить внимание на насос охлаждения #2, возможна утечка..."></textarea></div>
+        <button class="btn" id="btnGenNo">Generate Night Order</button>
+        <div class="result-box" id="resNo"></div>
+        <button class="btn copy-btn" id="btnCopyNo">📋 Copy Text</button>
     </div>
 </div>
 
@@ -502,6 +581,8 @@
     }
     setupCopy('btnCopyChg', 'resChg');
     setupCopy('btnCopyOrb', 'resOrb');
+    setupCopy('btnCopyLop', 'resLop');
+    setupCopy('btnCopyNo', 'resNo');
 
     // === TANKS MANAGEMENT ===
     let tanks = JSON.parse(localStorage.getItem('vessel_tanks')) || [
@@ -1584,6 +1665,122 @@
         link.click();
     };
 
+    // === BUNKERING CHECKLIST ===
+    const BUNKER_PREDEFINED = [
+        'Communications established with supplier (VHF/UHF)',
+        'Bunkering plan agreed and signed by both parties',
+        'Emergency shutdown procedure discussed',
+        'Drip trays in place and empty',
+        'Scuppers plugged',
+        'Firefighting equipment ready (extinguishers, sand)',
+        'Sampling procedure agreed (drip sample)',
+        'Personnel stationed at manifold',
+        'Hose/loading arm connected, pressure tested',
+        'Tank levels checked before start'
+    ];
+
+    let bunkerItems = JSON.parse(localStorage.getItem('el_bunker_items')) || [];
+    if(bunkerItems.length === 0) {
+        bunkerItems = BUNKER_PREDEFINED.map((text, i) => ({ id: 'b_' + i, text, checked: false }));
+        localStorage.setItem('el_bunker_items', JSON.stringify(bunkerItems));
+    }
+
+    function renderBunkerChecklist() {
+        const box = document.getElementById('bunkerChecklist');
+        if(!box) return;
+        box.innerHTML = bunkerItems.map(item => `
+            <div style="padding:8px 0; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; gap:10px;">
+                <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleBunker('${item.id}', this)" style="margin-top:2px;">
+                <div style="flex:1; font-size:0.85rem; line-height:1.4;">${item.text}</div>
+            </div>
+        `).join('');
+    }
+
+    window.toggleBunker = function(id, el) {
+        const item = bunkerItems.find(i => i.id === id);
+        if(!item) return;
+        item.checked = el.checked;
+        localStorage.setItem('el_bunker_items', JSON.stringify(bunkerItems));
+    };
+
+    document.getElementById('btnResetBunker').onclick = () => {
+        if(!confirm('Сбросить чек-лист?')) return;
+        bunkerItems = BUNKER_PREDEFINED.map((text, i) => ({ id: 'b_' + i, text, checked: false }));
+        localStorage.setItem('el_bunker_items', JSON.stringify(bunkerItems));
+        renderBunkerChecklist();
+    };
+
+    // === LETTER OF PROTEST ===
+    document.getElementById('lopDate').valueAsDate = new Date();
+
+    document.getElementById('btnGenLop').onclick = () => {
+        const date = formatDate(document.getElementById('lopDate').value);
+        const time = document.getElementById('lopTime').value;
+        const vessel = document.getElementById('lopVessel').value || '[VESSEL NAME]';
+        const port = document.getElementById('lopPort').value || '[PORT]';
+        const supplier = document.getElementById('lopSupplier').value || '[SUPPLIER]';
+        const reason = document.getElementById('lopReason').value;
+        const details = document.getElementById('lopDetails').value;
+
+        let text = `LETTER OF PROTEST\n\n`;
+        text += `Date: ${date}\nTime: ${time}\n`;
+        text += `Vessel: ${vessel}\nPort: ${port}\n`;
+        text += `To: ${supplier}\n\n`;
+        
+        text += `Dear Sirs,\n\n`;
+        text += `This is to formally protest against the `;
+        
+        if(reason === 'Shortage') text += `shortage of bunker fuel delivered.`;
+        else if(reason === 'Quality') text += `poor quality of bunker fuel delivered.`;
+        else if(reason === 'Delay') text += `delay in delivery of bunker fuel.`;
+        else text += `issue during bunkering operation.`;
+        
+        text += `\n\nDetails:\n${details}\n\n`;
+        
+        text += `We hold you responsible for any consequences arising from this issue. `;
+        text += `This protest is made without prejudice to the rights of the Owners and Charterers.\n\n`;
+        
+        text += `Yours faithfully,\n`;
+        text += `Master / Chief Engineer of ${vessel}`;
+
+        document.getElementById('resLop').innerText = text;
+        document.getElementById('resLop').style.display = 'block';
+        document.getElementById('btnCopyLop').style.display = 'block';
+    };
+
+    // === NIGHT ORDER ===
+    document.getElementById('noDate').valueAsDate = new Date();
+
+    document.getElementById('btnGenNo').onclick = () => {
+        const date = formatDate(document.getElementById('noDate').value);
+        const pos = document.getElementById('noPos').value || 'N/A';
+        const weather = document.getElementById('noWeather').value || 'N/A';
+        const status = document.getElementById('noStatus').value;
+        const extra = document.getElementById('noExtra').value.trim();
+
+        let text = `NIGHT ORDER\nDate: ${date}\nPosition: ${pos}\nWeather: ${weather}\nStatus: ${status}\n\n`;
+        text += `To the Duty Engineer:\n\n`;
+        text += `Please pay special attention to the following during your watch:\n`;
+
+        const checkboxes = document.querySelectorAll('.no-check');
+        checkboxes.forEach(cb => {
+            if(cb.checked) {
+                text += `- ${cb.value}\n`;
+            }
+        });
+
+        if(extra) {
+            text += `\nAdditional Instructions:\n${extra}\n`;
+        }
+
+        text += `\nIn case of any abnormalities or emergencies, call the Chief Engineer immediately.\n\n`;
+        text += `Signed: Chief Engineer`;
+
+        document.getElementById('resNo').innerText = text;
+        document.getElementById('resNo').style.display = 'block';
+        document.getElementById('btnCopyNo').style.display = 'block';
+    };
+
     // === INIT ===
     renderTankList();
     renderOrbFields();
@@ -1594,6 +1791,7 @@
     renderReqAll();
     renderWarranty();
     renderNotes();
+    renderBunkerChecklist();
 
 </script>
 </body>

@@ -572,6 +572,18 @@
         else if(code === 'G') {
             text += `G 22: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\n23: PLACE OR POSITION: ${val('orbPosStart')}\n24: TYPE AND QUANTITY: ${val('orbSource')}\n25: CIRCUMSTANCES: ${val('orbText')}`;
         }
+        else if(code === 'H26.1') {
+            text += `H 26.1: BUNKERING START: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\nSTOP: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\nPORT/POSITION: ${val('orbPosStart')}\nMETHOD: ${val('orbMethod')}`;
+        }
+        else if(code === 'H26.2') {
+            text += `H 26.2: TANK BEING FILLED: ${tank('orbDestTank')}\nMETHOD OF BUNKERING: ${val('orbMethod')}`;
+        }
+        else if(code === 'H26.3') {
+            text += `H 26.3: GRADE: ${val('orbGrade')}\nQUANTITY: ${val('orbQty')} m³\nDENSITY @ 15°C: ${val('orbDensity')} g/cm³\nSULPHUR: ${val('orbSulfur')}% m/m`;
+        }
+        else if(code === 'H26.4') {
+            text += `H 26.4: GRADE: ${val('orbGrade')}\nQUANTITY: ${val('orbQty')} m³`;
+        }
 
         // Добавляем подпись
         text += `\nSigned: (Officer-in-charge, Name & Rank) ${dateStr}`;
@@ -581,9 +593,152 @@
         document.getElementById('btnCopyOrb').style.display = 'block';
     };
 
+    // === ORB HISTORY ===
+    let orbHistory = JSON.parse(localStorage.getItem('orb_history')) || [];
+
+    function renderOrbHistory() {
+        const box = document.getElementById('orbHistory');
+        if(!box) return;
+        if(orbHistory.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No entries yet.</div>';
+            return;
+        }
+        box.innerHTML = orbHistory.slice().reverse().map((h, idx) => {
+            const realIdx = orbHistory.length - 1 - idx;
+            return `
+                <div class="tank-list-item" style="align-items:flex-start; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; width:100%; gap:8px;">
+                        <div style="font-weight:600; font-size:0.85rem; color:var(--yellow);">${h.code} — ${h.date}</div>
+                        <button class="btn-danger" onclick="deleteOrbHistory(${realIdx})">Del</button>
+                    </div>
+                    <div style="font-family:monospace; font-size:0.7rem; color:var(--text-muted); white-space:pre-wrap;">${h.text.substring(0, 150)}${h.text.length > 150 ? '...' : ''}</div>
+                    <button class="btn" style="margin-top:0; padding:6px; font-size:0.75rem;" onclick="copyOrbHistory(${realIdx})">📋 Copy</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.deleteOrbHistory = function(i) {
+        if(!confirm('Delete this entry?')) return;
+        orbHistory.splice(i, 1);
+        localStorage.setItem('orb_history', JSON.stringify(orbHistory));
+        renderOrbHistory();
+    };
+
+    window.copyOrbHistory = function(i) {
+        navigator.clipboard.writeText(orbHistory[i].text).then(() => alert('Copied!'));
+    };
+
+    document.getElementById('btnSaveOrb').onclick = () => {
+        const text = document.getElementById('resOrb').innerText;
+        if(!text) return;
+        const code = document.getElementById('orbCodeSelect').value;
+        const date = formatDate(document.getElementById('chgDate').value);
+        orbHistory.push({ code: code, date: date, text: text, ts: Date.now() });
+        localStorage.setItem('orb_history', JSON.stringify(orbHistory));
+        renderOrbHistory();
+        const b = document.getElementById('btnSaveOrb');
+        b.textContent = '✅ Saved';
+        setTimeout(() => { b.textContent = '💾 Save to History'; }, 2000);
+    };
+
+    document.getElementById('btnExportOrb').onclick = () => {
+        const text = document.getElementById('resOrb').innerText;
+        if(!text) return;
+        const code = document.getElementById('orbCodeSelect').value;
+        const date = formatDate(document.getElementById('chgDate').value);
+        const csv = 'Code,Date,Entry\n' + `"${code}","${date}","${text.replace(/"/g, '""')}"`;
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `ORB_${code}_${date}.csv`;
+        link.click();
+    };
+
+    const _origGenOrb = document.getElementById('btnGenOrb').onclick;
+    document.getElementById('btnGenOrb').onclick = function() {
+        _origGenOrb.call(this);
+        document.getElementById('btnSaveOrb').style.display = 'block';
+        document.getElementById('btnExportOrb').style.display = 'block';
+    };
+
+    // === FUEL CALC ===
+    const densityTable = [
+        { min: 0.810, max: 0.813, vcf: 0.00091 },
+        { min: 0.814, max: 0.817, vcf: 0.00090 },
+        { min: 0.818, max: 0.823, vcf: 0.00088 },
+        { min: 0.824, max: 0.828, vcf: 0.00087 },
+        { min: 0.829, max: 0.833, vcf: 0.00086 },
+        { min: 0.834, max: 0.838, vcf: 0.00085 },
+        { min: 0.839, max: 0.848, vcf: 0.00084 },
+        { min: 0.849, max: 0.854, vcf: 0.00083 },
+        { min: 0.855, max: 0.859, vcf: 0.00082 },
+        { min: 0.860, max: 0.876, vcf: 0.00081 },
+        { min: 0.877, max: 0.882, vcf: 0.00080 },
+        { min: 0.883, max: 0.893, vcf: 0.00079 },
+        { min: 0.894, max: 0.902, vcf: 0.00078 },
+        { min: 0.903, max: 0.912, vcf: 0.00077 },
+        { min: 0.913, max: 0.925, vcf: 0.00075 },
+        { min: 0.926, max: 0.937, vcf: 0.00074 },
+        { min: 0.938, max: 0.955, vcf: 0.00072 },
+        { min: 0.956, max: 0.970, vcf: 0.00071 },
+        { min: 0.971, max: 0.982, vcf: 0.00070 },
+        { min: 0.983, max: 0.997, vcf: 0.00068 },
+        { min: 0.998, max: 1.015, vcf: 0.00067 },
+        { min: 1.016, max: 1.020, vcf: 0.00066 },
+        { min: 1.021, max: 1.030, vcf: 0.00065 }
+    ];
+
+    function getVcf(density) {
+        const row = densityTable.find(r => density >= r.min && density <= r.max);
+        return row ? row.vcf : null;
+    }
+
+    document.getElementById('btnCalcVcf').onclick = () => {
+        const density = parseFloat(document.getElementById('fcDensity').value);
+        const temp = parseFloat(document.getElementById('fcTemp').value);
+        const volume = parseFloat(document.getElementById('fcVolume').value);
+        if(isNaN(density) || isNaN(temp) || isNaN(volume)) { alert('Fill all fields'); return; }
+        const vcf = getVcf(density);
+        if(!vcf) { alert('Density out of range (0.810–1.030)'); return; }
+        const corrected = volume - vcf * (temp - 15);
+        document.getElementById('fcVcf').value = vcf.toFixed(5);
+        const res = document.getElementById('resFuel');
+        res.style.display = 'block';
+        res.innerText =
+            `Density @ 15°C: ${density.toFixed(4)} g/cm³\n` +
+            `VCF (coefficient): ${vcf.toFixed(5)}\n` +
+            `Observed Volume: ${volume.toFixed(2)} m³\n` +
+            `Temperature: ${temp.toFixed(1)}°C\n` +
+            `Corrected Volume @ 15°C: ${corrected.toFixed(3)} m³`;
+    };
+
+    document.getElementById('btnCalcCons').onclick = () => {
+        const line = document.getElementById('fcLine').value;
+        const start = parseFloat(document.getElementById('fcStart').value);
+        const end = parseFloat(document.getElementById('fcEnd').value);
+        const density = parseFloat(document.getElementById('fcD2').value);
+        const temp = parseFloat(document.getElementById('fcT2').value);
+        if(isNaN(start) || isNaN(end) || isNaN(density) || isNaN(temp)) { alert('Fill all fields'); return; }
+        if(end < start) { alert('End reading must be >= start'); return; }
+        const vcf = getVcf(density);
+        if(!vcf) { alert('Density out of range'); return; }
+        const corrStart = start - vcf * (temp - 15);
+        const corrEnd = end - vcf * (temp - 15);
+        const consum = (corrEnd - corrStart) / 1000;
+        const res = document.getElementById('resCons');
+        res.style.display = 'block';
+        res.innerText =
+            `Line: ${line}\n` +
+            `Start: ${start.toFixed(2)} → Corrected: ${corrStart.toFixed(3)}\n` +
+            `End: ${end.toFixed(2)} → Corrected: ${corrEnd.toFixed(3)}\n` +
+            `Consumption: ${consum.toFixed(3)} MT`;
+    };
+
     // === INIT ===
     renderTankList();
     renderOrbFields();
+    renderOrbHistory();
 
 </script>
 </body>

@@ -63,6 +63,7 @@
 <div class="tabs">
     <button class="tab-btn active" data-tab="chg">⛽ Changeover</button>
     <button class="tab-btn" data-tab="orb">📘 ORB Gen</button>
+    <button class="tab-btn" data-tab="fuel">🧮 Fuel Calc</button>
     <button class="tab-btn" data-tab="tanks">⚙️ Tanks</button>
 </div>
 
@@ -110,6 +111,10 @@
                 <option value="D15.2">D 13-15.2 - Disposal Bilge to Shore</option>
                 <option value="D15.3">D 13-15.3 - Transfer Bilge to another tank</option>
                 <option value="F19">F 19-21 - Failure of 15 ppm Equipment</option>
+                <option value="H26.1">H 26.1 - Bunkering Start / Stop</option>
+                <option value="H26.2">H 26.2 - Tanks Being Filled (Bunkering)</option>
+                <option value="H26.3">H 26.3 - Details of Fuel Oil Received</option>
+                <option value="H26.4">H 26.4 - Details of Bulk Lubricating Oil Received</option>
                 <option value="I_ALARM">I - Testing 15 ppm Alarm (Remarks)</option>
                 <option value="I_BILGE">I - Weekly Inventory of Bilge Water</option>
                 <option value="I_VALVE">I - Sealing / Unsealing of Overboard Valve</option>
@@ -119,13 +124,62 @@
 
         <div id="orbDynamicFields"></div>
 
-        <button class="btn" id="btnGenOrb">Generate ORB Entry</button>
+                <button class="btn" id="btnGenOrb">Generate ORB Entry</button>
         <div class="result-box" id="resOrb"></div>
         <button class="btn copy-btn" id="btnCopyOrb">📋 Copy Text</button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+            <button class="btn" id="btnSaveOrb" style="display:none; background:var(--green); color:#000;">💾 Save to History</button>
+            <button class="btn" id="btnExportOrb" style="display:none; background:var(--border); color:var(--text);">⬇️ Export CSV</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>History</h2>
+        <div id="orbHistory"></div>
     </div>
 </div>
 
-<!-- TAB 3: TANKS SETUP -->
+<!-- TAB 3: FUEL CALC -->
+<div id="tab-fuel" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>VCF / Density Correction</h2>
+        <div class="row-2">
+            <div class="form-group"><label>Density @ 15°C (g/cm³)</label><input type="number" id="fcDensity" step="0.001" value="0.9455"></div>
+            <div class="form-group"><label>Temperature (°C)</label><input type="number" id="fcTemp" step="0.1" value="15"></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Observed Volume (m³)</label><input type="number" id="fcVolume" step="0.01" value="100"></div>
+            <div class="form-group"><label>VCF (coefficient)</label><input type="text" id="fcVcf" readonly></div>
+        </div>
+        <button class="btn" id="btnCalcVcf">Calculate</button>
+        <div class="result-box" id="resFuel"></div>
+    </div>
+
+    <div class="card">
+        <h2>Flow Meter Consumption</h2>
+        <div class="form-group">
+            <label>Meter Line</label>
+            <select id="fcLine">
+                <option value="M/E">M/E Flow Meter</option>
+                <option value="D/G IN">D/G IN</option>
+                <option value="D/G OUT">D/G OUT</option>
+                <option value="BLR">Boiler</option>
+            </select>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Start Reading</label><input type="number" id="fcStart" step="0.01"></div>
+            <div class="form-group"><label>End Reading</label><input type="number" id="fcEnd" step="0.01"></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Density @ 15°C</label><input type="number" id="fcD2" step="0.001" value="0.9455"></div>
+            <div class="form-group"><label>Temp (°C)</label><input type="number" id="fcT2" step="0.1" value="15"></div>
+        </div>
+        <button class="btn" id="btnCalcCons">Calculate Consumption</button>
+        <div class="result-box" id="resCons"></div>
+    </div>
+</div>
+
+<!-- TAB 4: TANKS SETUP -->
 <div id="tab-tanks" class="tab-content" style="display:none;">
     <div class="card">
         <h2>Vessel Tanks Setup</h2>
@@ -384,7 +438,7 @@
             <div class="form-group"><label>Valve No.</label><input type="text" id="orbSource" placeholder="e.g. B059V"></div>
             <div class="form-group"><label>Seal No.</label><input type="text" id="orbReceipt" placeholder="e.g. 979904"></div>
         `,
-        'G': `
+                'G': `
             <div class="row-2">
                 <div class="form-group"><label>Time (GMT)</label><input type="time" id="orbStartGmt"></div>
                 <div class="form-group"><label>Time (LT)</label><input type="time" id="orbStartLt"></div>
@@ -392,6 +446,34 @@
             <div class="form-group"><label>Place or Position</label><input type="text" id="orbPosStart" placeholder="LAT XXX LONG XXX"></div>
             <div class="form-group"><label>Type and Quantity</label><input type="text" id="orbSource" placeholder="e.g. 0.1 m³ HFO"></div>
             <div class="form-group"><label>Circumstances</label><textarea id="orbText" placeholder="e.g. Fuel tank overflow during bunkering"></textarea></div>
+        `,
+        'H26.1': `
+            <div class="row-2">
+                <div class="form-group"><label>Start (GMT)</label><input type="time" id="orbStartGmt"></div>
+                <div class="form-group"><label>Start (LT)</label><input type="time" id="orbStartLt"></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group"><label>Stop (GMT)</label><input type="time" id="orbStopGmt"></div>
+                <div class="form-group"><label>Stop (LT)</label><input type="time" id="orbStopLt"></div>
+            </div>
+            <div class="form-group"><label>Port / Position</label><input type="text" id="orbPosStart" placeholder="e.g. FUJAIRAH / LAT.. LONG.."></div>
+            <div class="form-group"><label>Method of Bunkering</label><input type="text" id="orbMethod" placeholder="e.g. via bunker barge"></div>
+        `,
+        'H26.2': `
+            <div class="form-group"><label>Tank Being Filled</label><select id="orbDestTank" class="tank-select-all"></select></div>
+            <div class="form-group"><label>Method of Bunkering</label><input type="text" id="orbMethod" placeholder="e.g. via bunker barge"></div>
+        `,
+        'H26.3': `
+            <div class="form-group"><label>Grade of Fuel Oil</label><input type="text" id="orbGrade" placeholder="e.g. VLSFO"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Quantity Received (m³)</label><input type="number" id="orbQty" step="0.01"></div>
+                <div class="form-group"><label>Density @ 15°C</label><input type="number" id="orbDensity" step="0.001" placeholder="e.g. 0.9455"></div>
+            </div>
+            <div class="form-group"><label>Sulphur Content (% m/m)</label><input type="number" id="orbSulfur" step="0.01" placeholder="e.g. 0.50"></div>
+        `,
+        'H26.4': `
+            <div class="form-group"><label>Grade of Lubricating Oil</label><input type="text" id="orbGrade" placeholder="e.g. SAE 40"></div>
+            <div class="form-group"><label>Quantity Received (m³)</label><input type="number" id="orbQty" step="0.01"></div>
         `
     };
 

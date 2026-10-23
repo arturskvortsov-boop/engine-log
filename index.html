@@ -51,6 +51,20 @@
     }
     input, select, textarea { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; min-width: 0 !important; -webkit-appearance: none; appearance: none; }
     input[type="date"], input[type="time"] { min-height: 42px; line-height: normal; }
+
+    /* SUB-TABS (Spares) */
+    .sub-tab-btn { flex: 1; padding: 8px 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
+    .sub-tab-btn.active { background: var(--accent); color: #000; }
+
+    /* INVENTORY FLAGS */
+    .inv-warning { color: var(--red); font-weight: 700; }
+    .inv-critical-star { color: var(--yellow); }
+
+    /* DELIVERY details */
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::before { content: '▸ '; display: inline-block; transition: transform 0.2s; }
+    details[open] > summary::before { transform: rotate(90deg); }
 </style>
 </head>
 <body>
@@ -65,6 +79,10 @@
     <button class="tab-btn" data-tab="orb">📘 ORB Gen</button>
     <button class="tab-btn" data-tab="fuel">🧮 Fuel Calc</button>
     <button class="tab-btn" data-tab="tanks">⚙️ Tanks</button>
+    <button class="tab-btn" data-tab="delivery">📋 Delivery</button>
+    <button class="tab-btn" data-tab="spares">📦 Spares</button>
+    <button class="tab-btn" data-tab="warranty">🛡️ Warranty</button>
+    <button class="tab-btn" data-tab="notes">📝 Notes</button>
 </div>
 
 <!-- TAB 1: CHANGEOVER -->
@@ -177,6 +195,204 @@
         </div>
         <button class="btn" id="btnCalcCons">Calculate Consumption</button>
         <div class="result-box" id="resCons"></div>
+    </div>
+</div>
+
+<!-- TAB 5: DELIVERY -->
+<div id="tab-delivery" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Delivery Checklist</h2>
+        <div id="deliverySections"></div>
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <div class="form-group"><label>Add Custom Item</label><input type="text" id="newDeliveryItem" placeholder="Item description"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Section</label><select id="newDeliverySection"><option value="dock">Dock Trial</option><option value="sea">Sea Trial</option><option value="docs">Documents</option></select></div>
+                <div class="form-group"><label>&nbsp;</label><button class="btn" id="btnAddDeliveryItem" style="margin-top:0;">+ Add Item</button></div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <h2>Punch List (Defects)</h2>
+        <div id="punchList"></div>
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <div class="row-2">
+                <div class="form-group"><label>Item</label><input type="text" id="plItem" placeholder="e.g. ME Fuel Pump"></div>
+                <div class="form-group"><label>Location</label><input type="text" id="plLocation" placeholder="e.g. ER FR 25"></div>
+            </div>
+            <div class="form-group"><label>Description</label><textarea id="plDescription" placeholder="What's wrong"></textarea></div>
+            <div class="row-2">
+                <div class="form-group"><label>Severity</label><select id="plSeverity"><option>Critical</option><option>Major</option><option>Minor</option></select></div>
+                <div class="form-group"><label>Status</label><select id="plStatus"><option>Open</option><option>Fixed</option><option>Accepted as-is</option></select></div>
+            </div>
+            <div class="form-group"><label>Responsible (Yard/Supplier)</label><input type="text" id="plWho" placeholder="e.g. HYUNDAI"></div>
+            <button class="btn" id="btnAddPunch">+ Add Defect</button>
+            <button class="btn" id="btnExportPunch" style="background:var(--border); color:var(--text);">⬇️ Export CSV</button>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 6: SPARES -->
+<div id="tab-spares" class="tab-content" style="display:none;">
+    <div class="tabs" style="margin-bottom:12px;">
+        <button class="sub-tab-btn active" data-sub="inv">📦 Inventory</button>
+        <button class="sub-tab-btn" data-sub="req">📝 Requisition</button>
+    </div>
+
+    <!-- SUB: INVENTORY -->
+    <div id="sub-inv" class="sub-content">
+        <div class="card">
+            <h2>Inventory</h2>
+            <div class="form-group">
+                <label>Filter</label>
+                <select id="invFilter">
+                    <option value="all">All</option>
+                    <option value="below">Below Minimum ⚠️</option>
+                    <option value="critical">Critical Only ★</option>
+                    <option value="Spare">Spare</option>
+                    <option value="Store">Store</option>
+                    <option value="Lube">Lube</option>
+                    <option value="Chemical">Chemical</option>
+                    <option value="Fuel">Fuel</option>
+                    <option value="Tools">Tools</option>
+                </select>
+            </div>
+            <div id="invList"></div>
+        </div>
+        <div class="card">
+            <h2>+ Add Item</h2>
+            <div class="form-group"><label>Name</label><input type="text" id="newInvName" placeholder="e.g. ME Fuel Injector"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Maker</label><input type="text" id="newInvMaker" placeholder="e.g. MAN B&W"></div>
+                <div class="form-group"><label>Part No.</label><input type="text" id="newInvPart" placeholder="e.g. 90910-1234"></div>
+            </div>
+            <div class="form-group"><label>Location</label><input type="text" id="newInvLocation" placeholder="e.g. Store 1, Shelf B3"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Category</label><select id="newInvCategory"><option>Spare</option><option>Store</option><option>Lube</option><option>Chemical</option><option>Fuel</option><option>Tools</option></select></div>
+                <div class="form-group"><label>Critical</label><select id="newInvCritical"><option value="no">No</option><option value="yes">Yes ★</option></select></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group"><label>On Board</label><input type="number" id="newInvOnBoard" step="1" value="0"></div>
+                <div class="form-group"><label>Min</label><input type="number" id="newInvMin" step="1" value="1"></div>
+            </div>
+            <div class="form-group"><label>Ordered (in transit)</label><input type="number" id="newInvOrdered" step="1" value="0"></div>
+            <button class="btn" id="btnAddInv">+ Add to Inventory</button>
+        </div>
+    </div>
+
+    <!-- SUB: REQUISITION -->
+    <div id="sub-req" class="sub-content" style="display:none;">
+        <div class="card">
+            <h2>Requisition — Header</h2>
+            <div class="form-group"><label>Vessel</label><input type="text" id="reqVessel" placeholder="e.g. MV NONDAS"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Port</label><input type="text" id="reqPort" placeholder="e.g. Rotterdam"></div>
+                <div class="form-group"><label>Agent</label><input type="text" id="reqAgent" placeholder="e.g. Wilhelmsen"></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group"><label>Date</label><input type="date" id="reqDate"></div>
+                <div class="form-group"><label>Urgency</label><select id="reqUrgency"><option>Routine</option><option>Urgent</option><option>Emergency</option></select></div>
+            </div>
+            <div class="form-group"><label>Remarks</label><textarea id="reqRemarks" placeholder="Delivery instructions..."></textarea></div>
+        </div>
+
+        <div class="card">
+            <h2>Requisition — Items</h2>
+            <div id="reqRows"></div>
+
+            <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+                <div class="form-group"><label>Name</label><input type="text" id="newReqName" placeholder="Item name"></div>
+                <div class="row-2">
+                    <div class="form-group"><label>Maker</label><input type="text" id="newReqMaker"></div>
+                    <div class="form-group"><label>Part No.</label><input type="text" id="newReqPart"></div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group"><label>Qty</label><input type="number" id="newReqQty" step="1" value="1"></div>
+                    <div class="form-group"><label>Unit</label><input type="text" id="newReqUnit" placeholder="pcs / L / kg"></div>
+                </div>
+                <div class="form-group"><label>Remarks</label><input type="text" id="newReqRemarks"></div>
+                <button class="btn" id="btnAddReqRow">+ Add Row</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>From Inventory (Below Min)</h2>
+            <div id="reqInvPicker"></div>
+        </div>
+
+        <div class="card">
+            <h2>Actions</h2>
+            <button class="btn" id="btnReqExport" style="background:var(--border); color:var(--text);">⬇️ Export CSV</button>
+            <button class="btn" id="btnReqCopy" style="background:var(--green); color:#000;">📋 Copy Text</button>
+            <button class="btn" id="btnReqClear" style="background:var(--red); color:#fff;">🗑️ Clear Draft</button>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 7: WARRANTY -->
+<div id="tab-warranty" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Warranty Claims</h2>
+        <div id="warrantyList"></div>
+        <button class="btn" id="btnExportWarranty" style="background:var(--border); color:var(--text);">⬇️ Export CSV</button>
+    </div>
+    <div class="card">
+        <h2>+ Add Claim</h2>
+        <div class="form-group"><label>Item</label><input type="text" id="wItem" placeholder="e.g. ME Cylinder Head #3"></div>
+        <div class="row-2">
+            <div class="form-group"><label>Maker</label><input type="text" id="wMaker" placeholder="e.g. MAN B&W"></div>
+            <div class="form-group"><label>System</label><select id="wSystem"><option>Main Engine</option><option>Aux Engine</option><option>Boiler</option><option>Deck</option><option>Aux Systems</option><option>Electrical</option><option>Navigation</option><option>Other</option></select></div>
+        </div>
+        <div class="form-group"><label>Description of Failure</label><textarea id="wDescription"></textarea></div>
+        <div class="row-2">
+            <div class="form-group"><label>Date of Failure</label><input type="date" id="wDateFail"></div>
+            <div class="form-group"><label>Date Claimed</label><input type="date" id="wDateClaimed"></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Ref No.</label><input type="text" id="wRefNo" placeholder="Claim / Service report"></div>
+            <div class="form-group"><label>Warranty Expiry</label><input type="date" id="wExpiry"></div>
+        </div>
+        <div class="form-group"><label>Status</label><select id="wStatus"><option>Open</option><option>Claimed</option><option>Resolved</option><option>Rejected</option></select></div>
+        <div class="form-group"><label>Notes</label><textarea id="wNotes"></textarea></div>
+        <button class="btn" id="btnAddWarranty">+ Add Claim</button>
+    </div>
+</div>
+
+<!-- TAB 8: NOTES -->
+<div id="tab-notes" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>+ New Note</h2>
+        <div class="row-2">
+            <div class="form-group"><label>Category</label><select id="noteCategory">
+                <option value="Inspector">🔍 Inspector / PSC</option>
+                <option value="Superintendent">👔 Superintendent</option>
+                <option value="PhonePrep">📞 Phone Prep</option>
+                <option value="Task">✅ Task</option>
+                <option value="General">📝 General</option>
+            </select></div>
+            <div class="form-group"><label>Pin</label><select id="notePinned"><option value="no">No</option><option value="yes">Yes 📌</option></select></div>
+        </div>
+        <div class="form-group"><label>Title</label><input type="text" id="noteTitle" placeholder="Short title"></div>
+        <div class="form-group"><label>Body</label><textarea id="noteBody" placeholder="Details, questions, points to raise..." style="min-height:100px;"></textarea></div>
+        <button class="btn" id="btnAddNote">+ Add Note</button>
+    </div>
+
+    <div class="card">
+        <h2>Notes</h2>
+        <div class="row-2">
+            <div class="form-group"><label>Filter</label><select id="noteFilter">
+                <option value="all">All</option>
+                <option value="open">Open</option>
+                <option value="done">Done</option>
+                <option value="Inspector">🔍 Inspector</option>
+                <option value="Superintendent">👔 Superintendent</option>
+                <option value="PhonePrep">📞 Phone Prep</option>
+                <option value="Task">✅ Task</option>
+                <option value="General">📝 General</option>
+            </select></div>
+            <div class="form-group"><label>Search</label><input type="text" id="noteSearch" placeholder="Search title/body"></div>
+        </div>
+        <div id="notesList"></div>
+        <button class="btn" id="btnExportNotes" style="background:var(--border); color:var(--text);">⬇️ Export CSV</button>
     </div>
 </div>
 
@@ -760,10 +976,578 @@
             `Consumption: ${consum.toFixed(3)} MT`;
     };
 
+    // === DELIVERY CHECKLIST ===
+    const DELIVERY_PREDEFINED = {
+        dock: ['Main Engine','Aux Engines (1/2/3)','Boiler','Steering Gear','Fire Pumps','Emergency Generator','Lifeboat Davits','Hatches & Covers','Ballast System','Bilge System','Purifiers','Incinerator','Sewage Treatment','Fresh Water Generator','A/C & Refrigeration','Bow Thruster','Mooring Winches'],
+        sea: ['MCR Full Speed Run','Fuel Consumption Measurement','Manoeuvring Tests','Anchoring Test','ECDIS','GMDSS','Autopilot','Steering Changeover','Emergency Steering','Blackout Recovery','Crash Stop'],
+        docs: ['IOPP Certificate','ORB','BWRB','Garbage Record Book','ISM (SMC + DOC)','ISPS Certificate','MLC Certificate','Class Certs (Hull/Machinery)','Load Line','Tonnage Certificate','Safety Equipment Certificate','Radio License','Minimum Manning Document','CSR','IHM','CoF']
+    };
+    const SECTION_LABELS = { dock: 'Dock Trial', sea: 'Sea Trial', docs: 'Documents' };
+
+    let deliveryItems = JSON.parse(localStorage.getItem('el_delivery_items')) || [];
+    if(deliveryItems.length === 0) {
+        Object.entries(DELIVERY_PREDEFINED).forEach(([section, arr]) => {
+            arr.forEach((text, i) => deliveryItems.push({ id: 'd_' + section + '_' + i, section, text, checked: false, note: '', custom: false }));
+        });
+        localStorage.setItem('el_delivery_items', JSON.stringify(deliveryItems));
+    }
+
+    function renderDelivery() {
+        const box = document.getElementById('deliverySections');
+        if(!box) return;
+        box.innerHTML = Object.keys(SECTION_LABELS).map(section => {
+            const items = deliveryItems.filter(i => i.section === section);
+            const done = items.filter(i => i.checked).length;
+            return `
+                <details open style="margin-bottom:15px;">
+                    <summary style="cursor:pointer; font-weight:600; font-size:0.85rem; color:var(--accent); padding:6px 0;">${SECTION_LABELS[section]} (<span data-counter="${section}">${done}/${items.length}</span>)</summary>
+                    <div style="margin-top:8px;">
+                        ${items.map(item => `
+                            <div style="padding:8px 0; border-bottom:1px solid var(--border);">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="checkbox" data-did="${item.id}" ${item.checked ? 'checked' : ''} onchange="toggleDelivery('${item.id}', this)" style="width:18px; height:18px; flex:0 0 auto; min-width:18px;">
+                                    <div style="flex:1; font-size:0.85rem;">${item.text}</div>
+                                    ${item.custom ? `<button class="btn-danger" onclick="deleteDeliveryItem('${item.id}')" style="padding:2px 8px; font-size:0.7rem;">Del</button>` : ''}
+                                </div>
+                                <input type="text" placeholder="Note..." value="${(item.note || '').replace(/"/g, '&quot;')}" onchange="updateDeliveryNote('${item.id}', this.value)" style="width:100%; margin-top:6px; padding:6px; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; font-size:0.75rem;">
+                            </div>
+                        `).join('')}
+                    </div>
+                </details>
+            `;
+        }).join('');
+    }
+
+    window.toggleDelivery = function(id, el) {
+        const item = deliveryItems.find(i => i.id === id);
+        if(!item) return;
+        item.checked = el.checked;
+        localStorage.setItem('el_delivery_items', JSON.stringify(deliveryItems));
+        const items = deliveryItems.filter(i => i.section === item.section);
+        const done = items.filter(i => i.checked).length;
+        const counter = document.querySelector(`[data-counter="${item.section}"]`);
+        if(counter) counter.textContent = `${done}/${items.length}`;
+    };
+
+    window.updateDeliveryNote = function(id, val) {
+        const item = deliveryItems.find(i => i.id === id);
+        if(!item) return;
+        item.note = val;
+        localStorage.setItem('el_delivery_items', JSON.stringify(deliveryItems));
+    };
+
+    window.deleteDeliveryItem = function(id) {
+        if(!confirm('Delete this item?')) return;
+        deliveryItems = deliveryItems.filter(i => i.id !== id);
+        localStorage.setItem('el_delivery_items', JSON.stringify(deliveryItems));
+        renderDelivery();
+    };
+
+    document.getElementById('btnAddDeliveryItem').onclick = () => {
+        const text = document.getElementById('newDeliveryItem').value.trim();
+        const section = document.getElementById('newDeliverySection').value;
+        if(!text) { alert('Enter item text'); return; }
+        deliveryItems.push({ id: 'd_c_' + Date.now(), section, text, checked: false, note: '', custom: true });
+        localStorage.setItem('el_delivery_items', JSON.stringify(deliveryItems));
+        document.getElementById('newDeliveryItem').value = '';
+        renderDelivery();
+    };
+
+    // === PUNCH LIST ===
+    let punchList = JSON.parse(localStorage.getItem('el_punch_list')) || [];
+
+    function renderPunchList() {
+        const box = document.getElementById('punchList');
+        if(!box) return;
+        if(punchList.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No defects recorded.</div>';
+            return;
+        }
+        box.innerHTML = punchList.slice().reverse().map(p => {
+            const sevColor = p.severity === 'Critical' ? 'var(--red)' : p.severity === 'Major' ? 'var(--yellow)' : 'var(--text-muted)';
+            return `
+                <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; gap:8px;">
+                        <div style="font-weight:600; font-size:0.85rem;">${p.item}</div>
+                        <button class="btn-danger" onclick="deletePunch('${p.id}')">Del</button>
+                    </div>
+                    <div style="font-size:0.75rem; color:${sevColor};">${p.severity} • ${p.status}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${p.location || '-'} • ${p.who || '-'}</div>
+                    <div style="font-size:0.8rem;">${p.description || ''}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.deletePunch = function(id) {
+        if(!confirm('Delete?')) return;
+        punchList = punchList.filter(p => p.id !== id);
+        localStorage.setItem('el_punch_list', JSON.stringify(punchList));
+        renderPunchList();
+    };
+
+    document.getElementById('btnAddPunch').onclick = () => {
+        const item = document.getElementById('plItem').value.trim();
+        if(!item) { alert('Enter item name'); return; }
+        punchList.push({
+            id: 'p_' + Date.now(),
+            item,
+            location: document.getElementById('plLocation').value.trim(),
+            description: document.getElementById('plDescription').value.trim(),
+            severity: document.getElementById('plSeverity').value,
+            status: document.getElementById('plStatus').value,
+            who: document.getElementById('plWho').value.trim()
+        });
+        localStorage.setItem('el_punch_list', JSON.stringify(punchList));
+        ['plItem','plLocation','plDescription','plWho'].forEach(id => document.getElementById(id).value = '');
+        renderPunchList();
+    };
+
+    document.getElementById('btnExportPunch').onclick = () => {
+        if(punchList.length === 0) { alert('Punch list is empty'); return; }
+        let csv = 'Item,Location,Description,Severity,Status,Responsible\n';
+        punchList.forEach(p => {
+            csv += `"${(p.item||'').replace(/"/g,'""')}","${(p.location||'').replace(/"/g,'""')}","${(p.description||'').replace(/"/g,'""')}","${p.severity}","${p.status}","${(p.who||'').replace(/"/g,'""')}"\n`;
+        });
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `PunchList_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    };
+
+    // === INVENTORY ===
+    let inventoryItems = JSON.parse(localStorage.getItem('el_inventory_items')) || [];
+    let invFilter = 'all';
+
+    function renderInventory() {
+        const box = document.getElementById('invList');
+        if(!box) return;
+        let filtered = inventoryItems;
+        if(invFilter === 'below') filtered = inventoryItems.filter(i => (i.onBoard + i.ordered) < i.min);
+        else if(invFilter === 'critical') filtered = inventoryItems.filter(i => i.critical);
+        else if(invFilter !== 'all') filtered = inventoryItems.filter(i => i.category === invFilter);
+
+        if(filtered.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No items.</div>';
+            return;
+        }
+        box.innerHTML = filtered.map(i => {
+            const below = (i.onBoard + i.ordered) < i.min;
+            return `
+                <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; gap:8px;">
+                        <div style="font-weight:600; font-size:0.85rem;">${i.name} ${i.critical ? '<span class="inv-critical-star">★</span>' : ''}</div>
+                        <button class="btn-danger" onclick="deleteInvItem('${i.id}')">Del</button>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${i.category} • ${i.maker || '-'} • ${i.part || '-'} • ${i.location || '-'}</div>
+                    <div style="font-size:0.8rem;" class="${below ? 'inv-warning' : ''}">On board: ${i.onBoard} | Min: ${i.min} | Ordered: ${i.ordered} ${below ? '⚠️ BELOW MIN' : ''}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    document.getElementById('invFilter').onchange = function() {
+        invFilter = this.value;
+        renderInventory();
+    };
+
+    window.deleteInvItem = function(id) {
+        if(!confirm('Delete item?')) return;
+        inventoryItems = inventoryItems.filter(i => i.id !== id);
+        localStorage.setItem('el_inventory_items', JSON.stringify(inventoryItems));
+        renderInventory();
+        renderReqInvPicker();
+    };
+
+    document.getElementById('btnAddInv').onclick = () => {
+        const name = document.getElementById('newInvName').value.trim();
+        if(!name) { alert('Enter item name'); return; }
+        inventoryItems.push({
+            id: 'i_' + Date.now(),
+            name,
+            maker: document.getElementById('newInvMaker').value.trim(),
+            part: document.getElementById('newInvPart').value.trim(),
+            location: document.getElementById('newInvLocation').value.trim(),
+            category: document.getElementById('newInvCategory').value,
+            onBoard: parseFloat(document.getElementById('newInvOnBoard').value) || 0,
+            min: parseFloat(document.getElementById('newInvMin').value) || 0,
+            ordered: parseFloat(document.getElementById('newInvOrdered').value) || 0,
+            critical: document.getElementById('newInvCritical').value === 'yes'
+        });
+        localStorage.setItem('el_inventory_items', JSON.stringify(inventoryItems));
+        ['newInvName','newInvMaker','newInvPart','newInvLocation'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('newInvOnBoard').value = 0;
+        document.getElementById('newInvMin').value = 1;
+        document.getElementById('newInvOrdered').value = 0;
+        renderInventory();
+        renderReqInvPicker();
+    };
+
+    // === REQUISITION ===
+    let reqDraft = JSON.parse(localStorage.getItem('el_requisition_draft')) || {
+        vessel: '', port: '', agent: '', date: new Date().toISOString().slice(0,10), urgency: 'Routine', remarks: '', rows: []
+    };
+
+    function saveReqDraft() { localStorage.setItem('el_requisition_draft', JSON.stringify(reqDraft)); }
+
+    function renderReqHeader() {
+        document.getElementById('reqVessel').value = reqDraft.vessel;
+        document.getElementById('reqPort').value = reqDraft.port;
+        document.getElementById('reqAgent').value = reqDraft.agent;
+        document.getElementById('reqDate').value = reqDraft.date;
+        document.getElementById('reqUrgency').value = reqDraft.urgency;
+        document.getElementById('reqRemarks').value = reqDraft.remarks;
+    }
+
+    function renderReqRows() {
+        const box = document.getElementById('reqRows');
+        if(!box) return;
+        if(reqDraft.rows.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No rows added.</div>';
+            return;
+        }
+        box.innerHTML = reqDraft.rows.map(r => `
+            <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:4px;">
+                <div style="display:flex; justify-content:space-between; gap:8px;">
+                    <div style="font-weight:600; font-size:0.85rem;">${r.name}</div>
+                    <button class="btn-danger" onclick="deleteReqRow('${r.id}')">Del</button>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${r.maker || '-'} • ${r.part || '-'} • Qty: ${r.qty} ${r.unit || ''}</div>
+                ${r.remarks ? `<div style="font-size:0.75rem;">${r.remarks}</div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    function renderReqInvPicker() {
+        const box = document.getElementById('reqInvPicker');
+        if(!box) return;
+        const below = inventoryItems.filter(i => (i.onBoard + i.ordered) < i.min);
+        if(below.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No items below minimum.</div>';
+            return;
+        }
+        box.innerHTML = below.map(i => `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border);">
+                <div style="font-size:0.8rem;">${i.name} (${i.onBoard}/${i.min})${i.critical ? ' ★' : ''}</div>
+                <button class="btn" style="margin-top:0; padding:6px 10px; font-size:0.75rem; width:auto;" onclick="addReqFromInv('${i.id}')">+ Add</button>
+            </div>
+        `).join('');
+    }
+
+    function renderReqAll() {
+        renderReqHeader();
+        renderReqRows();
+        renderReqInvPicker();
+    }
+
+    window.deleteReqRow = function(id) {
+        reqDraft.rows = reqDraft.rows.filter(r => r.id !== id);
+        saveReqDraft();
+        renderReqRows();
+    };
+
+    window.addReqFromInv = function(invId) {
+        const inv = inventoryItems.find(i => i.id === invId);
+        if(!inv) return;
+        const need = Math.max(inv.min - inv.onBoard - inv.ordered, 1);
+        reqDraft.rows.push({
+            id: 'r_' + Date.now(),
+            name: inv.name,
+            maker: inv.maker || '',
+            part: inv.part || '',
+            qty: need,
+            unit: 'pcs',
+            remarks: `Below min (on board ${inv.onBoard}, min ${inv.min})`,
+            inventoryId: inv.id
+        });
+        saveReqDraft();
+        renderReqRows();
+    };
+
+    ['reqVessel','reqPort','reqAgent','reqDate','reqUrgency','reqRemarks'].forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.oninput = el.onchange = function() {
+            const map = { reqVessel:'vessel', reqPort:'port', reqAgent:'agent', reqDate:'date', reqUrgency:'urgency', reqRemarks:'remarks' };
+            reqDraft[map[id]] = this.value;
+            saveReqDraft();
+        };
+    });
+
+    document.getElementById('btnAddReqRow').onclick = () => {
+        const name = document.getElementById('newReqName').value.trim();
+        if(!name) { alert('Enter item name'); return; }
+        reqDraft.rows.push({
+            id: 'r_' + Date.now(),
+            name,
+            maker: document.getElementById('newReqMaker').value.trim(),
+            part: document.getElementById('newReqPart').value.trim(),
+            qty: parseFloat(document.getElementById('newReqQty').value) || 1,
+            unit: document.getElementById('newReqUnit').value.trim(),
+            remarks: document.getElementById('newReqRemarks').value.trim()
+        });
+        saveReqDraft();
+        ['newReqName','newReqMaker','newReqPart','newReqUnit','newReqRemarks'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('newReqQty').value = 1;
+        renderReqRows();
+    };
+
+    document.getElementById('btnReqExport').onclick = () => {
+        if(reqDraft.rows.length === 0) { alert('No rows to export'); return; }
+        let csv = 'Vessel,Port,Agent,Date,Urgency,Remarks\n';
+        csv += `"${reqDraft.vessel}","${reqDraft.port}","${reqDraft.agent}","${reqDraft.date}","${reqDraft.urgency}","${(reqDraft.remarks||'').replace(/"/g,'""')}"\n\n`;
+        csv += 'Name,Maker,Part No.,Qty,Unit,Remarks\n';
+        reqDraft.rows.forEach(r => {
+            csv += `"${(r.name||'').replace(/"/g,'""')}","${(r.maker||'').replace(/"/g,'""')}","${(r.part||'').replace(/"/g,'""')}","${r.qty}","${(r.unit||'').replace(/"/g,'""')}","${(r.remarks||'').replace(/"/g,'""')}"\n`;
+        });
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Requisition_${reqDraft.date}.csv`;
+        link.click();
+    };
+
+    document.getElementById('btnReqCopy').onclick = () => {
+        if(reqDraft.rows.length === 0) { alert('No rows to copy'); return; }
+        let txt = `REQUISITION\n`;
+        txt += `Vessel: ${reqDraft.vessel || '-'}\nPort: ${reqDraft.port || '-'}\nAgent: ${reqDraft.agent || '-'}\nDate: ${reqDraft.date}\nUrgency: ${reqDraft.urgency}\n`;
+        if(reqDraft.remarks) txt += `Remarks: ${reqDraft.remarks}\n`;
+        txt += `\n--- ITEMS ---\n`;
+        reqDraft.rows.forEach((r, i) => {
+            txt += `${i+1}. ${r.name}`;
+            if(r.maker) txt += ` | Maker: ${r.maker}`;
+            if(r.part) txt += ` | P/N: ${r.part}`;
+            txt += ` | Qty: ${r.qty} ${r.unit || ''}`;
+            if(r.remarks) txt += ` | ${r.remarks}`;
+            txt += `\n`;
+        });
+        navigator.clipboard.writeText(txt).then(() => {
+            const b = document.getElementById('btnReqCopy');
+            b.textContent = '✅ Copied!';
+            setTimeout(() => { b.textContent = '📋 Copy Text'; }, 2000);
+        });
+    };
+
+    document.getElementById('btnReqClear').onclick = () => {
+        if(!confirm('Clear entire requisition draft? (Inventory untouched)')) return;
+        reqDraft = { vessel: '', port: '', agent: '', date: new Date().toISOString().slice(0,10), urgency: 'Routine', remarks: '', rows: [] };
+        saveReqDraft();
+        renderReqAll();
+    };
+
+    // === SUB-TABS BINDING (Spares) ===
+    document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.sub-content').forEach(c => c.style.display = 'none');
+            btn.classList.add('active');
+            document.getElementById('sub-' + btn.dataset.sub).style.display = 'block';
+        };
+    });
+
+    // === WARRANTY ===
+    let warrantyItems = JSON.parse(localStorage.getItem('el_warranty_items')) || [];
+
+    function renderWarranty() {
+        const box = document.getElementById('warrantyList');
+        if(!box) return;
+        if(warrantyItems.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No warranty claims.</div>';
+            return;
+        }
+        box.innerHTML = warrantyItems.slice().reverse().map(w => {
+            let days = null;
+            if(w.expiry) {
+                days = Math.ceil((new Date(w.expiry) - new Date()) / (1000*60*60*24));
+            }
+            const daysColor = days !== null && days < 30 ? 'var(--red)' : 'var(--text-muted)';
+            const statusColor = w.status === 'Resolved' ? 'var(--green)' : w.status === 'Rejected' ? 'var(--red)' : w.status === 'Claimed' ? 'var(--yellow)' : 'var(--text-muted)';
+            return `
+                <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; gap:8px;">
+                        <div style="font-weight:600; font-size:0.85rem;">${w.item}</div>
+                        <button class="btn-danger" onclick="deleteWarranty('${w.id}')">Del</button>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${w.system} • ${w.maker || '-'} • Failure: ${w.dateFail || '-'}</div>
+                    <div style="font-size:0.75rem; color:${statusColor};">Status: ${w.status}${w.refNo ? ' • Ref: ' + w.refNo : ''}</div>
+                    ${days !== null ? `<div style="font-size:0.75rem; color:${daysColor};">Expiry: ${w.expiry} (${days >= 0 ? days + ' days left' : Math.abs(days) + ' days overdue'})</div>` : ''}
+                    ${w.description ? `<div style="font-size:0.8rem;">${w.description}</div>` : ''}
+                    ${w.notes ? `<div style="font-size:0.75rem; color:var(--text-muted);">${w.notes}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.deleteWarranty = function(id) {
+        if(!confirm('Delete claim?')) return;
+        warrantyItems = warrantyItems.filter(w => w.id !== id);
+        localStorage.setItem('el_warranty_items', JSON.stringify(warrantyItems));
+        renderWarranty();
+    };
+
+    document.getElementById('btnAddWarranty').onclick = () => {
+        const item = document.getElementById('wItem').value.trim();
+        if(!item) { alert('Enter item'); return; }
+        warrantyItems.push({
+            id: 'w_' + Date.now(),
+            item,
+            maker: document.getElementById('wMaker').value.trim(),
+            system: document.getElementById('wSystem').value,
+            description: document.getElementById('wDescription').value.trim(),
+            dateFail: document.getElementById('wDateFail').value,
+            dateClaimed: document.getElementById('wDateClaimed').value,
+            refNo: document.getElementById('wRefNo').value.trim(),
+            expiry: document.getElementById('wExpiry').value,
+            status: document.getElementById('wStatus').value,
+            notes: document.getElementById('wNotes').value.trim()
+        });
+        localStorage.setItem('el_warranty_items', JSON.stringify(warrantyItems));
+        ['wItem','wMaker','wDescription','wDateFail','wDateClaimed','wRefNo','wExpiry','wNotes'].forEach(id => document.getElementById(id).value = '');
+        renderWarranty();
+    };
+
+    document.getElementById('btnExportWarranty').onclick = () => {
+        if(warrantyItems.length === 0) { alert('No claims to export'); return; }
+        let csv = 'Item,Maker,System,Description,Date of Failure,Date Claimed,Ref No.,Expiry,Status,Notes\n';
+        warrantyItems.forEach(w => {
+            csv += `"${(w.item||'').replace(/"/g,'""')}","${(w.maker||'').replace(/"/g,'""')}","${w.system}","${(w.description||'').replace(/"/g,'""')}","${w.dateFail||''}","${w.dateClaimed||''}","${(w.refNo||'').replace(/"/g,'""')}","${w.expiry||''}","${w.status}","${(w.notes||'').replace(/"/g,'""')}"\n`;
+        });
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Warranty_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    };
+
+    // === NOTES ===
+    let notesItems = JSON.parse(localStorage.getItem('el_notes_items')) || [];
+    let noteFilter = 'all';
+    let noteSearchTerm = '';
+
+    const NOTE_ICONS = { Inspector: '🔍', Superintendent: '👔', PhonePrep: '📞', Task: '✅', General: '📝' };
+
+    function renderNotes() {
+        const box = document.getElementById('notesList');
+        if(!box) return;
+        let filtered = notesItems;
+        if(noteFilter === 'open') filtered = filtered.filter(n => !n.done);
+        else if(noteFilter === 'done') filtered = filtered.filter(n => n.done);
+        else if(noteFilter !== 'all') filtered = filtered.filter(n => n.category === noteFilter);
+        if(noteSearchTerm) {
+            const t = noteSearchTerm.toLowerCase();
+            filtered = filtered.filter(n => (n.title||'').toLowerCase().includes(t) || (n.body||'').toLowerCase().includes(t));
+        }
+
+        filtered = filtered.slice().sort((a, b) => {
+            if(a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+            return b.ts - a.ts;
+        });
+
+        if(filtered.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No notes.</div>';
+            return;
+        }
+
+        box.innerHTML = filtered.map(n => {
+            const icon = NOTE_ICONS[n.category] || '📝';
+            const dateStr = new Date(n.ts).toISOString().slice(0, 16).replace('T', ' ');
+            return `
+                <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:6px; ${n.done ? 'opacity:0.55;' : ''}">
+                    <div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start;">
+                        <div style="flex:1;">
+                            <div style="font-weight:600; font-size:0.85rem; ${n.done ? 'text-decoration:line-through;' : ''}">${n.pinned ? '📌 ' : ''}${icon} ${n.title || '(no title)'}</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">${n.category} • ${dateStr}</div>
+                        </div>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                            <button class="btn-danger" style="padding:4px 8px; font-size:0.7rem;" onclick="toggleNoteDone('${n.id}')">${n.done ? '↩️' : '✓'}</button>
+                            <button class="btn-danger" style="padding:4px 8px; font-size:0.7rem;" onclick="toggleNotePin('${n.id}')">${n.pinned ? '📍' : '📌'}</button>
+                            <button class="btn-danger" style="padding:4px 8px; font-size:0.7rem;" onclick="deleteNote('${n.id}')">Del</button>
+                        </div>
+                    </div>
+                    ${n.body ? `<div style="font-size:0.8rem; white-space:pre-wrap; margin-top:4px;">${n.body}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.toggleNoteDone = function(id) {
+        const n = notesItems.find(x => x.id === id);
+        if(!n) return;
+        n.done = !n.done;
+        localStorage.setItem('el_notes_items', JSON.stringify(notesItems));
+        renderNotes();
+    };
+
+    window.toggleNotePin = function(id) {
+        const n = notesItems.find(x => x.id === id);
+        if(!n) return;
+        n.pinned = !n.pinned;
+        localStorage.setItem('el_notes_items', JSON.stringify(notesItems));
+        renderNotes();
+    };
+
+    window.deleteNote = function(id) {
+        if(!confirm('Delete this note?')) return;
+        notesItems = notesItems.filter(n => n.id !== id);
+        localStorage.setItem('el_notes_items', JSON.stringify(notesItems));
+        renderNotes();
+    };
+
+    document.getElementById('btnAddNote').onclick = () => {
+        const title = document.getElementById('noteTitle').value.trim();
+        const body = document.getElementById('noteBody').value.trim();
+        if(!title && !body) { alert('Enter title or body'); return; }
+        notesItems.push({
+            id: 'n_' + Date.now(),
+            title,
+            body,
+            category: document.getElementById('noteCategory').value,
+            pinned: document.getElementById('notePinned').value === 'yes',
+            done: false,
+            ts: Date.now()
+        });
+        localStorage.setItem('el_notes_items', JSON.stringify(notesItems));
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteBody').value = '';
+        document.getElementById('notePinned').value = 'no';
+        renderNotes();
+    };
+
+    document.getElementById('noteFilter').onchange = function() {
+        noteFilter = this.value;
+        renderNotes();
+    };
+
+    document.getElementById('noteSearch').oninput = function() {
+        noteSearchTerm = this.value;
+        renderNotes();
+    };
+
+    document.getElementById('btnExportNotes').onclick = () => {
+        if(notesItems.length === 0) { alert('No notes to export'); return; }
+        let csv = 'Date,Category,Pinned,Done,Title,Body\n';
+        notesItems.slice().sort((a,b) => a.ts - b.ts).forEach(n => {
+            const d = new Date(n.ts).toISOString();
+            csv += `"${d}","${n.category}","${n.pinned ? 'Yes' : 'No'}","${n.done ? 'Yes' : 'No'}","${(n.title||'').replace(/"/g,'""')}","${(n.body||'').replace(/"/g,'""')}"\n`;
+        });
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Notes_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    };
+
     // === INIT ===
     renderTankList();
     renderOrbFields();
     renderOrbHistory();
+    renderDelivery();
+    renderPunchList();
+    renderInventory();
+    renderReqAll();
+    renderWarranty();
+    renderNotes();
 
 </script>
 </body>

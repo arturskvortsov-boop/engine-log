@@ -66,8 +66,12 @@
     }
 
     /* SUB-TABS (Spares) */
-    .sub-tab-btn { flex: 1; padding: 8px 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
+    .sub-tab-btn { flex: 1; padding: 6px 8px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.7rem; white-space: nowrap; }
     .sub-tab-btn.active { background: var(--accent); color: #000; }
+    
+    .main-tab-btn { flex: 1; padding: 10px 8px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
+    .main-tab-btn.active { background: var(--yellow); color: #000; }
+    #globalSubTabs { display: none; margin-top: -12px; margin-bottom: 20px; background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; }
 
     /* INVENTORY FLAGS */
     .inv-warning { color: var(--red); font-weight: 700; }
@@ -87,20 +91,14 @@
     <p>MARPOL & Changeover Assistant</p>
 </div>
 
-<div class="tabs">
-    <button class="tab-btn active" data-tab="chg">⛽ Changeover</button>
-    <button class="tab-btn" data-tab="orb">📘 ORB Gen</button>
-    <button class="tab-btn" data-tab="fuel">🧮 Fuel Calc</button>
-    <button class="tab-btn" data-tab="tanks">⚙️ Tanks</button>
-    <button class="tab-btn" data-tab="delivery">📋 Delivery</button>
-    <button class="tab-btn" data-tab="spares">📦 Spares</button>
-    <button class="tab-btn" data-tab="warranty">🛡️ Warranty</button>
-    <button class="tab-btn" data-tab="notes">📝 Notes</button>
-    <button class="tab-btn" data-tab="bunkering">⛽ Bunkering</button>
-    <button class="tab-btn" data-tab="nightorder">🌙 Night Order</button>
-    <button class="tab-btn" data-tab="lube">🧴 Lube Oil</button>
-    <button class="tab-btn" data-tab="tasks">🛠️ Tasks</button>
+<div class="tabs" style="background:transparent; border:none; padding:0; margin-bottom:10px;">
+    <button class="main-tab-btn active" data-group="marpol">📘 MARPOL</button>
+    <button class="main-tab-btn" data-group="engine">⚙️ Engine</button>
+    <button class="main-tab-btn" data-group="newbuild">📋 Newbuild</button>
+    <button class="main-tab-btn" data-group="admin">📦 Admin</button>
+    <button class="main-tab-btn" data-group="emergency">🚨 Emergency</button>
 </div>
+<div id="globalSubTabs"></div>
 
 <!-- TAB 1: CHANGEOVER -->
 <div id="tab-chg" class="tab-content">
@@ -355,6 +353,24 @@
     </div>
 </div>
 
+<!-- TAB 14: FAULTS -->
+<div id="tab-faults" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>+ Log Equipment Fault (Регистрация поломки)</h2>
+        <div class="form-group"><label>Equipment / System (Оборудование)</label><input type="text" id="fltEquip" placeholder="e.g. Main Engine / Cyl #3"></div>
+        <div class="form-group"><label>Description of Fault (Что случилось)</label><textarea id="fltDesc" placeholder="e.g. Упало давление масла, сработала защита"></textarea></div>
+        <div class="row-2">
+            <div class="form-group"><label>Action Taken (Что сделали)</label><input type="text" id="fltAction" placeholder="e.g. Заменили датчик"></div>
+            <div class="form-group"><label>Status</label><select id="fltStatus"><option value="Open">Open (Не решено)</option><option value="Resolved">Resolved (Решено)</option></select></div>
+        </div>
+        <button class="btn" id="btnAddFault">+ Add Fault</button>
+    </div>
+    <div class="card">
+        <h2>Fault History</h2>
+        <div id="faultsList"></div>
+    </div>
+</div>
+
 <!-- TAB 12: TASKS -->
 <div id="tab-tasks" class="tab-content" style="display:none;">
     <div class="card">
@@ -384,6 +400,55 @@
     </div>
 </div>
 
+<!-- TAB 15: EMERGENCY -->
+<div id="tab-emergency" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Emergency Contacts (Контакты)</h2>
+        <div id="emergencyList"></div>
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <div class="form-group"><label>Role (Должность)</label><input type="text" id="newEmerRole" placeholder="e.g. Superintendent"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Name (Имя)</label><input type="text" id="newEmerName" placeholder="e.g. John Doe"></div>
+                <div class="form-group"><label>Phone</label><input type="text" id="newEmerPhone" placeholder="+123456789"></div>
+            </div>
+            <button class="btn" id="btnAddEmergency">+ Add Contact</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Emergency Procedures (Памятка)</h2>
+        <details style="margin-bottom:10px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
+            <summary style="cursor:pointer; font-weight:600; color:var(--red);">🔥 FIRE IN ENGINE ROOM</summary>
+            <div style="margin-top:10px; font-size:0.8rem; line-height:1.4;">
+                1. Sound the alarm (непрерывный звонок).<br>
+                2. Stop M/E and generators (если безопасно).<br>
+                3. Activate fixed firefighting system (CO2/Foam) after confirming no personnel.<br>
+                4. Close all doors, vents, and skylights.<br>
+                5. Muster crew and account for everyone.
+            </div>
+        </details>
+        <details style="margin-bottom:10px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
+            <summary style="cursor:pointer; font-weight:600; color:var(--yellow);">⚡ BLACKOUT</summary>
+            <div style="margin-top:10px; font-size:0.8rem; line-height:1.4;">
+                1. Check Emergency Generator started and connected.<br>
+                2. Notify Bridge.<br>
+                3. Investigate cause (overload, trip, fuel issue).<br>
+                4. Restore power step-by-step (avoid large loads immediately).
+            </div>
+        </details>
+        <details style="margin-bottom:10px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
+            <summary style="cursor:pointer; font-weight:600; color:var(--accent);">🌊 FLOODING</summary>
+            <div style="margin-top:10px; font-size:0.8rem; line-height:1.4;">
+                1. General alarm.<br>
+                2. Locate the leak (sounding, visual).<br>
+                3. Start emergency bilge pump.<br>
+                4. Close watertight doors.<br>
+                5. Inform Master.
+            </div>
+        </details>
+    </div>
+</div>
+
 <!-- TAB 4: TANKS SETUP -->
 <div id="tab-tanks" class="tab-content" style="display:none;">
     <div class="card">
@@ -407,6 +472,39 @@
         <button class="btn" id="btnAddTank">+ Add Tank</button>
 
         <div id="tankList" style="margin-top: 15px;"></div>
+    </div>
+</div>
+
+<!-- TAB 13: SEA TRIAL -->
+<div id="tab-seatrial" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>+ Log Sea Trial Data (Данные ходовых)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Фиксируй параметры на разных режимах. Это доказательная база для верфи, если ГД не выдает мощность или жрет больше нормы.
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Date & Time (Дата и время)</label><input type="datetime-local" id="stDate"></div>
+            <div class="form-group"><label>Condition (Условия)</label><select id="stCondition"><option>MCR (Full Speed)</option><option>Economical Speed</option><option>Manoeuvring</option><option>Port / Anchor</option></select></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>RPM (Обороты)</label><input type="number" id="stRpm" placeholder="e.g. 105"></div>
+            <div class="form-group"><label>Power (Мощность, kW)</label><input type="number" id="stPower" placeholder="e.g. 7500"></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Fuel Rate (Расход, L/h)</label><input type="number" id="stFuel" placeholder="e.g. 1500"></div>
+            <div class="form-group"><label>SFOC (g/kWh)</label><input type="number" id="stSfoc" step="0.1" placeholder="e.g. 175"></div>
+        </div>
+        <div class="row-2">
+            <div class="form-group"><label>Pmax (Давление сгорания, bar)</label><input type="number" id="stPmax" step="0.1" placeholder="e.g. 120"></div>
+            <div class="form-group"><label>Exhaust Temp (Температура выхлопа, °C)</label><input type="number" id="stTemp" placeholder="e.g. 380"></div>
+        </div>
+        <div class="form-group"><label>Notes (Заметки)</label><input type="text" id="stNotes" placeholder="e.g. Вибрация на 90 оборотах"></div>
+        <button class="btn" id="btnAddSeaTrial">+ Add Record</button>
+    </div>
+    <div class="card">
+        <h2>Sea Trial Records</h2>
+        <div id="seaTrialList"></div>
+        <button class="btn" id="btnExportSeaTrial" style="background:var(--border); color:var(--text); margin-top:15px;">⬇️ Export CSV</button>
     </div>
 </div>
 
@@ -631,14 +729,68 @@
 
 <script>
     // === TABS LOGIC ===
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    const TAB_GROUPS = {
+        marpol: [
+            { id: 'chg', label: '⛽ Changeover' },
+            { id: 'orb', label: '📘 ORB Gen' },
+            { id: 'bunkering', label: '⛽ Bunkering' },
+            { id: 'tanks', label: '⚙️ Tanks' }
+        ],
+        engine: [
+            { id: 'fuel', label: '🧮 Fuel Calc' },
+            { id: 'lube', label: '🧴 Lube Oil' },
+            { id: 'nightorder', label: '🌙 Night Order' },
+            { id: 'tasks', label: '🛠️ Tasks' }
+        ],
+        newbuild: [
+            { id: 'delivery', label: '📋 Delivery' },
+            { id: 'seatrial', label: '📊 Sea Trial' },
+            { id: 'warranty', label: '🛡️ Warranty' }
+        ],
+        admin: [
+            { id: 'spares', label: '📦 Spares' }
+        ],
+        emergency: [
+            { id: 'emergency', label: '🚨 Contacts' },
+            { id: 'faults', label: '🔧 Faults' },
+            { id: 'notes', label: '📝 Notes' }
+        ]
+    };
+
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        const content = document.getElementById('tab-' + tabId);
+        if(content) content.style.display = 'block';
+        
+        if(btnElement) {
+            document.querySelectorAll('#globalSubTabs .sub-tab-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+    }
+
+    function renderSubTabs(group) {
+        const container = document.getElementById('globalSubTabs');
+        const tabs = TAB_GROUPS[group];
+        if(!tabs) return;
+        
+        container.innerHTML = tabs.map((t, i) => 
+            `<button class="sub-tab-btn ${i === 0 ? 'active' : ''}" onclick="switchTab('${t.id}', this)">${t.label}</button>`
+        ).join('');
+        
+        container.style.display = 'flex';
+        if(tabs.length > 0) switchTab(tabs[0].id, container.querySelector('.sub-tab-btn'));
+    }
+
+    document.querySelectorAll('.main-tab-btn').forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
+            renderSubTabs(btn.dataset.group);
         };
     });
+    
+    // Запуск первой вкладки по умолчанию
+    renderSubTabs('marpol');
 
     // === DATE FORMATTER (dd-MMM-yyyy) ===
     function formatDate(dateStr) {
@@ -2119,6 +2271,141 @@
         link.click();
     };
 
+    // === SEA TRIAL ===
+    let seaTrialItems = JSON.parse(localStorage.getItem('el_seatrial')) || [];
+
+    function renderSeaTrial() {
+        const box = document.getElementById('seaTrialList');
+        if(!box) return;
+        if(seaTrialItems.length === 0) { box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No data.</div>'; return; }
+
+        box.innerHTML = seaTrialItems.slice().reverse().map(item => `
+            <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:4px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <div style="font-weight:600; font-size:0.85rem;">${item.condition}</div>
+                    <button class="btn-danger" onclick="deleteSeaTrial('${item.id}')">Del</button>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${item.date.replace('T', ' ')}</div>
+                <div style="font-size:0.8rem; display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                    <div>RPM: ${item.rpm}</div><div>Power: ${item.power} kW</div>
+                    <div>SFOC: ${item.sfoc}</div><div>Temp: ${item.temp}°C</div>
+                </div>
+                ${item.notes ? `<div style="font-size:0.75rem; color:var(--yellow);">Note: ${item.notes}</div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    window.deleteSeaTrial = function(id) {
+        seaTrialItems = seaTrialItems.filter(i => i.id !== id);
+        localStorage.setItem('el_seatrial', JSON.stringify(seaTrialItems));
+        renderSeaTrial();
+    };
+
+    document.getElementById('btnAddSeaTrial').onclick = () => {
+        const date = document.getElementById('stDate').value;
+        if(!date) { alert('Enter Date & Time'); return; }
+        seaTrialItems.push({
+            id: 'st_' + Date.now(),
+            date,
+            condition: document.getElementById('stCondition').value,
+            rpm: document.getElementById('stRpm').value || '-',
+            power: document.getElementById('stPower').value || '-',
+            fuel: document.getElementById('stFuel').value || '-',
+            sfoc: document.getElementById('stSfoc').value || '-',
+            pmax: document.getElementById('stPmax').value || '-',
+            temp: document.getElementById('stTemp').value || '-',
+            notes: document.getElementById('stNotes').value.trim()
+        });
+        localStorage.setItem('el_seatrial', JSON.stringify(seaTrialItems));
+        ['stRpm','stPower','stFuel','stSfoc','stPmax','stTemp','stNotes'].forEach(id => document.getElementById(id).value = '');
+        renderSeaTrial();
+    };
+
+    document.getElementById('btnExportSeaTrial').onclick = () => {
+        if(seaTrialItems.length === 0) return;
+        let csv = 'Date,Condition,RPM,Power_kW,Fuel_Lh,SFOC,Pmax,Exhaust_Temp,Notes\n';
+        seaTrialItems.forEach(i => {
+            csv += `"${i.date}","${i.condition}","${i.rpm}","${i.power}","${i.fuel}","${i.sfoc}","${i.pmax}","${i.temp}","${(i.notes||'').replace(/"/g,'""')}"\n`;
+        });
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+        link.download = `SeaTrial_${new Date().toISOString().slice(0,10)}.csv`; link.click();
+    };
+
+    // === FAULTS ===
+    let faultItems = JSON.parse(localStorage.getItem('el_faults')) || [];
+
+    function renderFaults() {
+        const box = document.getElementById('faultsList');
+        if(!box) return;
+        if(faultItems.length === 0) { box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No faults logged.</div>'; return; }
+
+        box.innerHTML = faultItems.slice().reverse().map(f => {
+            const isRes = f.status === 'Resolved';
+            return `
+                <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:6px; ${isRes ? 'opacity:0.6;' : ''}">
+                    <div style="display:flex; justify-content:space-between; gap:8px;">
+                        <div style="font-weight:600; font-size:0.85rem;">${f.equip}</div>
+                        <button class="btn-danger" onclick="deleteFault('${f.id}')">Del</button>
+                    </div>
+                    <div style="font-size:0.8rem;">${f.desc}</div>
+                    <div style="font-size:0.75rem; color:var(--yellow);">Action: ${f.action || '-'}</div>
+                    <div style="font-size:0.75rem; color:${isRes ? 'var(--green)' : 'var(--red)'}; cursor:pointer;" onclick="toggleFault('${f.id}')">Status: ${f.status}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.deleteFault = function(id) { faultItems = faultItems.filter(i => i.id !== id); localStorage.setItem('el_faults', JSON.stringify(faultItems)); renderFaults(); };
+    window.toggleFault = function(id) {
+        const f = faultItems.find(x => x.id === id);
+        if(f) { f.status = f.status === 'Open' ? 'Resolved' : 'Open'; localStorage.setItem('el_faults', JSON.stringify(faultItems)); renderFaults(); }
+    };
+
+    document.getElementById('btnAddFault').onclick = () => {
+        const equip = document.getElementById('fltEquip').value.trim();
+        if(!equip) return alert('Enter Equipment');
+        faultItems.push({
+            id: 'f_' + Date.now(), equip,
+            desc: document.getElementById('fltDesc').value.trim(),
+            action: document.getElementById('fltAction').value.trim(),
+            status: document.getElementById('fltStatus').value
+        });
+        localStorage.setItem('el_faults', JSON.stringify(faultItems));
+        ['fltEquip','fltDesc','fltAction'].forEach(id => document.getElementById(id).value = '');
+        renderFaults();
+    };
+
+    // === EMERGENCY CONTACTS ===
+    let emergContacts = JSON.parse(localStorage.getItem('el_emergency')) || [];
+
+    function renderEmergency() {
+        const box = document.getElementById('emergencyList');
+        if(!box) return;
+        if(emergContacts.length === 0) { box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No contacts.</div>'; return; }
+        box.innerHTML = emergContacts.map(c => `
+            <div class="tank-list-item">
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem; color:var(--accent);">${c.role}</div>
+                    <div style="font-size:0.8rem;">${c.name}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">${c.phone}</div>
+                </div>
+                <button class="btn-danger" onclick="deleteEmergency('${c.id}')">Del</button>
+            </div>
+        `).join('');
+    }
+
+    window.deleteEmergency = function(id) { emergContacts = emergContacts.filter(i => i.id !== id); localStorage.setItem('el_emergency', JSON.stringify(emergContacts)); renderEmergency(); };
+
+    document.getElementById('btnAddEmergency').onclick = () => {
+        const role = document.getElementById('newEmerRole').value.trim();
+        if(!role) return alert('Enter Role');
+        emergContacts.push({ id: 'e_' + Date.now(), role, name: document.getElementById('newEmerName').value.trim(), phone: document.getElementById('newEmerPhone').value.trim() });
+        localStorage.setItem('el_emergency', JSON.stringify(emergContacts));
+        ['newEmerRole','newEmerName','newEmerPhone'].forEach(id => document.getElementById(id).value = '');
+        renderEmergency();
+    };
+
     // === INIT ===
     renderTankList();
     renderOrbFields();
@@ -2133,6 +2420,11 @@
     renderLubeRob();
     renderTasks();
     renderNoChecks();
+    renderSeaTrial();
+    renderFaults();
+    renderEmergency();
+    
+    document.getElementById('stDate').value = new Date().toISOString().slice(0, 16);
 
 </script>
 </body>

@@ -49,8 +49,21 @@
     @media (max-width: 600px) {
         .row-2 { grid-template-columns: 1fr !important; gap: 10px !important; }
     }
-    input, select, textarea { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; min-width: 0 !important; -webkit-appearance: none; appearance: none; }
+    input:not([type="checkbox"]), select, textarea { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; min-width: 0 !important; -webkit-appearance: none; appearance: none; }
     input[type="date"], input[type="time"] { min-height: 42px; line-height: normal; }
+    
+    /* Фикс для чекбоксов в чек-листе (чтобы не растягивались) */
+    input[type="checkbox"] {
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+        flex: 0 0 20px !important;
+        margin: 0 !important;
+        -webkit-appearance: checkbox !important;
+        appearance: checkbox !important;
+        cursor: pointer;
+    }
 
     /* SUB-TABS (Spares) */
     .sub-tab-btn { flex: 1; padding: 8px 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
@@ -1004,10 +1017,10 @@
                     <div style="margin-top:8px;">
                         ${items.map(item => `
                             <div style="padding:8px 0; border-bottom:1px solid var(--border);">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <input type="checkbox" data-did="${item.id}" ${item.checked ? 'checked' : ''} onchange="toggleDelivery('${item.id}', this)" style="width:18px; height:18px; flex:0 0 auto; min-width:18px;">
-                                    <div style="flex:1; font-size:0.85rem;">${item.text}</div>
-                                    ${item.custom ? `<button class="btn-danger" onclick="deleteDeliveryItem('${item.id}')" style="padding:2px 8px; font-size:0.7rem;">Del</button>` : ''}
+                                <div style="display:flex; align-items:flex-start; gap:10px;">
+                                    <input type="checkbox" data-did="${item.id}" ${item.checked ? 'checked' : ''} onchange="toggleDelivery('${item.id}', this)" style="margin-top:2px;">
+                                    <div style="flex:1; font-size:0.85rem; line-height:1.4; word-break:break-word;">${item.text}</div>
+                                    ${item.custom ? `<button class="btn-danger" onclick="deleteDeliveryItem('${item.id}')" style="padding:4px 8px; font-size:0.7rem; flex:0 0 auto;">Del</button>` : ''}
                                 </div>
                                 <input type="text" placeholder="Note..." value="${(item.note || '').replace(/"/g, '&quot;')}" onchange="updateDeliveryNote('${item.id}', this.value)" style="width:100%; margin-top:6px; padding:6px; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; font-size:0.75rem;">
                             </div>

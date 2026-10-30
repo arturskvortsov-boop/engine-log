@@ -194,7 +194,10 @@
 
     <div class="card">
         <h2>History</h2>
-        <button class="btn" id="btnExportAll" style="background:var(--border); color:var(--text); margin-bottom:10px;">⬇️ Export All (CSV)</button>
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+            <button class="btn" id="btnExportAll" style="background:var(--border); color:var(--text); margin-top:0; flex:1;">⬇️ Export All (CSV)</button>
+            <button class="btn" id="btnClearAllOrb" style="background:var(--red); color:#fff; margin-top:0; flex:1;">🗑️ Clear All</button>
+        </div>
         <div id="orbHistory"></div>
     </div>
 </div>
@@ -1363,6 +1366,16 @@
         const today = new Date().toISOString().slice(0, 10);
         link.download = `ORB_History_${today}.csv`;
         link.click();
+    };
+
+    document.getElementById('btnClearAllOrb').onclick = () => {
+        if(orbHistory.length === 0) { alert('History is already empty'); return; }
+        const confirmDelete = confirm('Вы уверены, что хотите УДАЛИТЬ ВСЮ историю записей ORB? Это действие нельзя отменить.\n\n(Совет: перед удалением сделайте Export All в CSV, если записи нужны для отчетности).');
+        if(confirmDelete) {
+            orbHistory = [];
+            localStorage.setItem('orb_history', JSON.stringify(orbHistory));
+            renderOrbHistory();
+        }
     };
 
     // === FUEL CALC ===

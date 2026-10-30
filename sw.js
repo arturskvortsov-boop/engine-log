@@ -1,4 +1,4 @@
-const CACHE_NAME = 'enginelog-v15';
+const CACHE_NAME = 'enginelog-v16';
 const ASSETS = [
     './',
     './index.html',

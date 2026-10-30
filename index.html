@@ -6,7 +6,7 @@
 <title>EngineLog - Chief Engineer</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#070b14">
 <link rel="manifest" href="manifest.json">
 <style>
     :root {
@@ -16,9 +16,11 @@
         --yellow: #fbbf24; --red: #f87171; --green: #4ade80;
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    html { background-color: #070b14; }
     body { 
         background: radial-gradient(circle at 50% 0%, #1e293b 0%, #070b14 70%); 
-        color: var(--text); padding: 16px; padding-bottom: 100px; 
+        color: var(--text); 
+        padding: calc(16px + env(safe-area-inset-top)) 16px 100px 16px; 
         min-height: 100vh;
     }
     
@@ -562,6 +564,10 @@
                     </select>
                 </div>
             </div>
+            <div class="form-group">
+                <label>Initial Density (Начальная плотность, t/m³)</label>
+                <input type="number" id="newTankDensity" step="0.001" value="0.95">
+            </div>
             <button class="btn" id="btnAddTank">+ Add Tank to Group</button>
         </div>
     </div>
@@ -922,27 +928,29 @@
     setupCopy('btnCopyLop', 'resLop');
     setupCopy('btnCopyNo', 'resNo');
 
-    // === TANKS MANAGEMENT V2 (SMART TANKS) ===
+    // === TANKS MANAGEMENT V3 (DENSITY & TONNAGE) ===
     let tanks = JSON.parse(localStorage.getItem('vessel_tanks')) || [];
     
+    // Добавляем плотность для старых танков (по умолчанию 0.95)
     tanks = tanks.map(t => ({
         id: t.id,
         name: t.name,
         loc: t.loc || '',
         type: t.type || 'sludge',
         capacity: t.capacity || 100,
-        volume: t.volume || 0
+        volume: t.volume || 0,
+        density: t.density || 0.95 // <--- НОВОЕ ПОЛЕ
     }));
 
     if(tanks.length === 0) {
         tanks = [
-            {id: 't1', name: 'NO.1 HFO TANK', loc: 'P', type: 'fuel', capacity: 500, volume: 200},
-            {id: 't2', name: 'NO.2 HFO TANK', loc: 'S', type: 'fuel', capacity: 500, volume: 150},
-            {id: 't3', name: 'MGO TANK', loc: 'C', type: 'fuel', capacity: 100, volume: 50},
-            {id: 't4', name: 'MAIN LO TANK', loc: 'C', type: 'lube', capacity: 15, volume: 8},
-            {id: 't5', name: 'CYL LO TANK', loc: 'C', type: 'lube', capacity: 5, volume: 3},
-            {id: 't6', name: 'SLUDGE TANK', loc: 'FR 21-28 P', type: 'sludge', capacity: 20, volume: 5},
-            {id: 't7', name: 'BILGE HOLDING TANK', loc: 'FR 13-19 C', type: 'bilge', capacity: 30, volume: 10}
+            {id: 't1', name: 'NO.1 HFO TANK', loc: 'P', type: 'fuel', capacity: 500, volume: 200, density: 0.95},
+            {id: 't2', name: 'NO.2 HFO TANK', loc: 'S', type: 'fuel', capacity: 500, volume: 150, density: 0.95},
+            {id: 't3', name: 'MGO TANK', loc: 'C', type: 'fuel', capacity: 100, volume: 50, density: 0.85},
+            {id: 't4', name: 'MAIN LO TANK', loc: 'C', type: 'lube', capacity: 15, volume: 8, density: 0.90},
+            {id: 't5', name: 'CYL LO TANK', loc: 'C', type: 'lube', capacity: 5, volume: 3, density: 0.90},
+            {id: 't6', name: 'SLUDGE TANK', loc: 'FR 21-28 P', type: 'sludge', capacity: 20, volume: 5, density: 0.95},
+            {id: 't7', name: 'BILGE HOLDING TANK', loc: 'FR 13-19 C', type: 'bilge', capacity: 30, volume: 10, density: 1.00}
         ];
     }
     localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
@@ -996,6 +1004,8 @@
                 }
             }
 
+            const currentMT = t.volume * t.density; // Считаем текущие тонны
+
             return `
                 <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
@@ -1004,14 +1014,25 @@
                             <div style="font-size:0.7rem; color:var(--text-muted);">${t.loc} | Type: ${t.type.toUpperCase()}</div>
                         </div>
                         <div style="display:flex; gap:4px;">
-                            <button class="btn" style="margin-top:0; padding:4px 8px; font-size:0.7rem; background:var(--border); color:var(--text);" onclick="updateTankVolume('${t.id}')">Vol</button>
+                            <button class="btn" style="margin-top:0; padding:4px 8px; font-size:0.7rem; background:var(--accent); color:#000;" onclick="updateTankVolume('${t.id}')">✏️ Vol</button>
                             <button class="btn-danger" style="padding:4px 8px; font-size:0.7rem;" onclick="deleteTank('${t.id}')">Del</button>
                         </div>
                     </div>
 
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
-                        <span>Vol: <b>${t.volume.toFixed(1)} m³</b></span>
-                        <span>Cap: ${t.capacity.toFixed(1)} m³ (<b>${fillPercent.toFixed(1)}%</b>)</span>
+                    <!-- Отображение объема и тоннажа -->
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:8px; align-items:center;">
+                        <div style="font-size:0.85rem;">
+                            Vol: <b>${t.volume.toFixed(1)} m³</b> 
+                            <span style="color:var(--green); margin-left:6px;">(<b>${currentMT.toFixed(1)} MT</b>)</span>
+                        </div>
+                        <span style="font-size:0.7rem; color:var(--text-muted);">Cap: ${t.capacity.toFixed(1)} m³ (<b>${fillPercent.toFixed(1)}%</b>)</span>
+                    </div>
+
+                    <!-- Поле для плотности текущего топлива в танке -->
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background:rgba(255,255,255,0.03); padding:6px 8px; border-radius:6px; border:1px solid var(--border);">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Current Density:</span>
+                        <input type="number" step="0.001" value="${t.density}" onchange="updateTankDensity('${t.id}', this.value)" style="width:70px; padding:2px 6px; font-size:0.75rem; background:var(--bg); border:1px solid var(--accent); color:var(--text); border-radius:4px; text-align:center;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">t/m³</span>
                     </div>
                     
                     <div style="width:100%; height:12px; background:var(--card); border-radius:6px; overflow:hidden; border:1px solid var(--border);">
@@ -1023,6 +1044,20 @@
             `;
         }).join('');
     }
+
+    window.updateTankDensity = function(id, newDensity) {
+        const t = tanks.find(x => x.id === id);
+        if(!t) return;
+        const val = parseFloat(newDensity);
+        if(!isNaN(val) && val > 0.5 && val < 1.1) {
+            t.density = val;
+            localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
+            renderTankCards(); // Перерисовываем карточку с новыми тоннами
+        } else {
+            alert('Некорректная плотность');
+            renderTankCards(); // Возвращаем старое значение
+        }
+    };
 
     window.updateTankVolume = function(id) {
         const t = tanks.find(x => x.id === id);
@@ -1052,7 +1087,8 @@
         
         if (!name || isNaN(cap) || cap <= 0) { alert('Enter name and capacity'); return; }
         
-        tanks.push({ id: 't_' + Date.now(), name: name, loc: loc, type: type, capacity: cap, volume: 0 });
+        const dens = parseFloat(document.getElementById('newTankDensity').value) || 0.95;
+        tanks.push({ id: 't_' + Date.now(), name: name, loc: loc, type: type, capacity: cap, volume: 0, density: dens });
         localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
         
         document.getElementById('newTankName').value = '';

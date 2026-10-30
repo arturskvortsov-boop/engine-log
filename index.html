@@ -864,7 +864,6 @@
     // === TANKS MANAGEMENT V2 (SMART TANKS) ===
     let tanks = JSON.parse(localStorage.getItem('vessel_tanks')) || [];
     
-    // Если старые танки без объема, обновляем структуру
     tanks = tanks.map(t => ({
         id: t.id,
         name: t.name,
@@ -895,7 +894,6 @@
         const planner = document.getElementById('bunkerPlannerCard');
         if(!container) return;
 
-        // Обновляем заголовок и планировщик
         if(currentTankGroup === 'fuel') { title.textContent = 'Fuel Tanks'; planner.style.display = 'block'; }
         else if(currentTankGroup === 'lube') { title.textContent = 'Lube Oil Tanks'; planner.style.display = 'block'; }
         else { title.textContent = 'Sludge & Bilge Tanks'; planner.style.display = 'none'; }
@@ -916,9 +914,8 @@
             const fillPercent = Math.min((t.volume / t.capacity) * 100, 100);
             const isHigh = fillPercent >= 85;
             const barColor = isHigh ? 'var(--red)' : (fillPercent > 60 ? 'var(--yellow)' : 'var(--green)');
-            const warning = isHigh ? '<span style="color:var(--red); font-weight:bold;">⚠️ HIGH LEVEL</span>' : '';
+            const warning = isHigh ? '<span style="color:var(--red); font-weight:bold;">HIGH LEVEL!</span>' : '';
             
-            // Bunker Calc (Max to 85%)
             let bunkerCalcHTML = '';
             if(currentTankGroup !== 'residue') {
                 const spaceTo85 = (t.capacity * 0.85) - t.volume;
@@ -926,13 +923,13 @@
                     const mtTo85 = spaceTo85 * density;
                     bunkerCalcHTML = `
                         <div style="font-size:0.75rem; color:var(--accent); margin-top:4px; background:rgba(56,189,248,0.1); padding:4px 8px; border-radius:4px;">
-                            ⛽ Free to 85%: <b>${spaceTo85.toFixed(1)} m³</b> (~${mtTo85.toFixed(1)} MT @ ${density})
+                            Free to 85%: <b>${spaceTo85.toFixed(1)} m³</b> (~${mtTo85.toFixed(1)} MT @ ${density})
                         </div>
                     `;
                 } else {
                      bunkerCalcHTML = `
                         <div style="font-size:0.75rem; color:var(--red); margin-top:4px; background:rgba(248,113,113,0.1); padding:4px 8px; border-radius:4px;">
-                            ⛽ No space to 85% limit!
+                            No space to 85% limit!
                         </div>
                     `;
                 }
@@ -946,7 +943,7 @@
                             <div style="font-size:0.7rem; color:var(--text-muted);">${t.loc} | Type: ${t.type.toUpperCase()}</div>
                         </div>
                         <div style="display:flex; gap:4px;">
-                            <button class="btn" style="margin-top:0; padding:4px 8px; font-size:0.7rem; background:var(--border); color:var(--text);" onclick="updateTankVolume('${t.id}')">✏️ Vol</button>
+                            <button class="btn" style="margin-top:0; padding:4px 8px; font-size:0.7rem; background:var(--border); color:var(--text);" onclick="updateTankVolume('${t.id}')">Vol</button>
                             <button class="btn-danger" style="padding:4px 8px; font-size:0.7rem;" onclick="deleteTank('${t.id}')">Del</button>
                         </div>
                     </div>
@@ -956,7 +953,6 @@
                         <span>Cap: ${t.capacity.toFixed(1)} m³ (<b>${fillPercent.toFixed(1)}%</b>)</span>
                     </div>
                     
-                    <!-- Progress Bar -->
                     <div style="width:100%; height:12px; background:var(--card); border-radius:6px; overflow:hidden; border:1px solid var(--border);">
                         <div style="height:100%; width:${fillPercent}%; background:${barColor}; transition: width 0.3s;"></div>
                     </div>
@@ -970,7 +966,7 @@
     window.updateTankVolume = function(id) {
         const t = tanks.find(x => x.id === id);
         if(!t) return;
-        const newVol = prompt(`Введите текущий объем для ${t.name} (м³).\nМаксимум: ${t.capacity} м³`, t.volume);
+        const newVol = prompt(`Enter current volume for ${t.name} (m3).\nMax: ${t.capacity}`, t.volume);
         if(newVol !== null && !isNaN(newVol)) {
             t.volume = Math.min(parseFloat(newVol), t.capacity);
             localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
@@ -980,7 +976,7 @@
     };
 
     window.deleteTank = function(id) {
-        if(!confirm('Удалить этот танк?')) return;
+        if(!confirm('Delete this tank?')) return;
         tanks = tanks.filter(t => t.id !== id);
         localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
         renderTankCards();
@@ -993,7 +989,7 @@
         const type = document.getElementById('newTankType').value;
         const cap = parseFloat(document.getElementById('newTankCap').value);
         
-        if (!name || isNaN(cap) || cap <= 0) { alert('Введите название и вместимость'); return; }
+        if (!name || isNaN(cap) || cap <= 0) { alert('Enter name and capacity'); return; }
         
         tanks.push({ id: 't_' + Date.now(), name: name, loc: loc, type: type, capacity: cap, volume: 0 });
         localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
@@ -1002,7 +998,6 @@
         document.getElementById('newTankLoc').value = '';
         document.getElementById('newTankCap').value = '';
         
-        // Переключаем вкладку на ту, куда добавили танк
         if(type === 'sludge' || type === 'bilge') currentTankGroup = 'residue';
         else currentTankGroup = type;
         document.querySelectorAll('[data-tankgroup]').forEach(b => {
@@ -1023,7 +1018,7 @@
             currentTankGroup = btn.dataset.tankgroup;
             renderTankCards();
         };
-    };
+    });
 
     // === CHANGEOVER GENERATOR ===
     document.getElementById('chgDate').valueAsDate = new Date();

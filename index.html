@@ -217,10 +217,8 @@
                 <option value="D15.2">D 13-15.2 - Disposal Bilge to Shore (Сдача льял на берег)</option>
                 <option value="D15.3">D 13-15.3 - Transfer Bilge to another tank (Перекачка льял в другой танк)</option>
                 <option value="F19">F 19-21 - Failure of 15 ppm Equipment (Отказ 15ppm оборудования)</option>
-                <option value="H26.1">H 26.1 - Bunkering Start / Stop (Начало/окончание бункеровки)</option>
-                <option value="H26.2">H 26.2 - Tanks Being Filled (Заполняемые танки)</option>
-                <option value="H26.3">H 26.3 - Details of Fuel Oil Received (Детали принятого топлива)</option>
-                <option value="H26.4">H 26.4 - Details of Bulk Lubricating Oil Received (Прием масла навалом)</option>
+                <option value="H_FUEL">H - Bunkering of Fuel Oil (Бункеровка топлива)</option>
+                <option value="H_LUBE">H - Bunkering of Lube Oil (Прием масла навалом)</option>
                 <option value="I_ALARM">I - Testing 15 ppm Alarm (Тест аларма 15ppm)</option>
                 <option value="I_BILGE">I - Weekly Inventory of Bilge Water (Еженед. замер льяльных вод)</option>
                 <option value="I_VALVE">I - Sealing / Unsealing of Overboard Valve (Пломбировка клапана)</option>
@@ -958,10 +956,13 @@
         'C11.4': `
             <div class="form-group"><label>Destination Tank (Танк назначения, шлам)</label><select id="orbDestTank" class="tank-select-sludge"></select></div>
             <div class="row-2">
-                <div class="form-group"><label>Quantity collected (Собрано, m³)</label><input type="number" id="orbQty" step="0.01"></div>
-                <div class="form-group"><label>Quantity retained (Остаток, m³)</label><input type="number" id="orbRetained" step="0.01"></div>
+                <div class="form-group"><label>Capacity (Вместимость, m³)</label><input type="number" id="orbCap" step="0.01"></div>
+                <div class="form-group"><label>Quantity Retained (Остаток, m³)</label><input type="number" id="orbRetained" step="0.01"></div>
             </div>
-            <div class="form-group"><label>Source of Sludge (Источник, напр. M/E Sump)</label><input type="text" id="orbSource" placeholder="e.g. M/E Sump Tank"></div>
+            <div class="row-2">
+                <div class="form-group"><label>Quantity collected (Собрано, m³)</label><input type="number" id="orbQty" step="0.01"></div>
+                <div class="form-group"><label>Source of Sludge (Источник)</label><input type="text" id="orbSource" placeholder="e.g. M/E Sump Tank"></div>
+            </div>
         `,
         'C12.1': `
             <div class="form-group"><label>Source Tank (Танк шлама, источник)</label><select id="orbSourceTank" class="tank-select-sludge"></select></div>
@@ -975,6 +976,7 @@
         'C12.2': `
             <div class="form-group"><label>Source Tank (Танк шлама, источник)</label><select id="orbSourceTank" class="tank-select-sludge"></select></div>
             <div class="form-group"><label>Destination Tank (Танк назначения)</label><select id="orbDestTank" class="tank-select-all"></select></div>
+            <div class="form-group"><label>Substance (Что перекачиваем)</label><select id="orbSubstance"><option value="sludge transferred">Sludge (Шлам)</option><option value="water drained">Water (Вода)</option></select></div>
             <div class="row-2">
                 <div class="form-group"><label>Quantity transferred (Перекачано, m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Retained in source (Остаток в источнике, m³)</label><input type="number" id="orbRetained" step="0.01"></div>
@@ -991,10 +993,12 @@
         `,
         'C12.4': `
             <div class="form-group"><label>Source Tank (Танк шлама, источник)</label><select id="orbSourceTank" class="tank-select-sludge"></select></div>
+            <div class="form-group"><label>Method (Метод)</label><select id="orbMethod"><option value="water evaporated">Evaporation (Испарение воды)</option><option value="sludge">Boiler (Сжигание в котле)</option></select></div>
             <div class="row-2">
-                <div class="form-group"><label>Water Evaporated (Испарено воды, m³)</label><input type="number" id="orbQty" step="0.01"></div>
+                <div class="form-group"><label>Quantity (m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Quantity retained (Остаток, m³)</label><input type="number" id="orbRetained" step="0.01"></div>
             </div>
+            <div class="form-group"><label>Duration (Время горения, часы - для котла)</label><input type="number" id="orbHours" step="0.1"></div>
         `,
         'D15.1': `
             <div class="form-group"><label>Source Tank (Танк льяльных вод)</label><select id="orbSourceTank" class="tank-select-bilge"></select></div>
@@ -1020,8 +1024,16 @@
                 <div class="form-group"><label>Quantity (Сдано, m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Quantity retained (Остаток, m³)</label><input type="number" id="orbRetained" step="0.01"></div>
             </div>
+            <div class="row-2">
+                <div class="form-group"><label>Start (GMT)</label><input type="time" id="orbStartGmt"></div>
+                <div class="form-group"><label>Start (LT)</label><input type="time" id="orbStartLt"></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group"><label>Stop (GMT)</label><input type="time" id="orbStopGmt"></div>
+                <div class="form-group"><label>Stop (LT)</label><input type="time" id="orbStopLt"></div>
+            </div>
             <div class="form-group"><label>Port / Reception (Порт / Приемщик)</label><input type="text" id="orbPort" placeholder="e.g. Rotterdam"></div>
-            <div class="form-group"><label>Receipt No. (Номер квитанции/расписки)</label><input type="text" id="orbReceipt" placeholder="e.g. 453"></div>
+            <div class="form-group"><label>Receipt No. (Номер квитанции)</label><input type="text" id="orbReceipt" placeholder="e.g. 453"></div>
         `,
         'D15.3': `
             <div class="form-group"><label>Source Tank (Танк льял, источник)</label><select id="orbSourceTank" class="tank-select-bilge"></select></div>
@@ -1029,6 +1041,14 @@
             <div class="row-2">
                 <div class="form-group"><label>Quantity (Перекачано, m³)</label><input type="number" id="orbQty" step="0.01"></div>
                 <div class="form-group"><label>Retained in source (Остаток в источнике, m³)</label><input type="number" id="orbRetained" step="0.01"></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group"><label>Start (GMT)</label><input type="time" id="orbStartGmt"></div>
+                <div class="form-group"><label>Start (LT)</label><input type="time" id="orbStartLt"></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group"><label>Stop (GMT)</label><input type="time" id="orbStopGmt"></div>
+                <div class="form-group"><label>Stop (LT)</label><input type="time" id="orbStopLt"></div>
             </div>
             <div class="form-group"><label>Retained in destination (Остаток в приемнике, m³)</label><input type="number" id="orbRetainedDest" step="0.01"></div>
         `,
@@ -1043,33 +1063,57 @@
             </div>
             <div class="form-group"><label>Reason for Failure (Причина)</label><input type="text" id="orbSource" placeholder="e.g. FAILURE OF FILTER ELEMENT"></div>
         `,
-        'H26.1': `
+        'H_FUEL': `
+            <div class="form-group"><label>26.1 Port (Порт)</label><input type="text" id="hPort" placeholder="e.g. FUJAIRAH"></div>
             <div class="row-2">
-                <div class="form-group"><label>Start (GMT)</label><input type="time" id="orbStartGmt"></div>
-                <div class="form-group"><label>Start (LT)</label><input type="time" id="orbStartLt"></div>
+                <div class="form-group"><label>26.2 Start Time (GMT)</label><input type="time" id="hStart"></div>
+                <div class="form-group"><label>26.2 Stop Time (GMT)</label><input type="time" id="hStop"></div>
             </div>
             <div class="row-2">
-                <div class="form-group"><label>Stop (GMT)</label><input type="time" id="orbStopGmt"></div>
-                <div class="form-group"><label>Stop (LT)</label><input type="time" id="orbStopLt"></div>
+                <div class="form-group"><label>26.3 Total Quantity (MT)</label><input type="number" id="hQty" step="0.01" placeholder="xxxx"></div>
+                <div class="form-group"><label>26.3 ISO Designation</label><input type="text" id="hIso" placeholder="e.g. ISO 8217 RMG 380"></div>
             </div>
-            <div class="form-group"><label>Port / Position (Порт / Координаты)</label><input type="text" id="orbPosStart" placeholder="e.g. FUJAIRAH / LAT.. LONG.."></div>
-            <div class="form-group"><label>Method of Bunkering (Метод бункеровки)</label><input type="text" id="orbMethod" placeholder="e.g. via bunker barge"></div>
-        `,
-        'H26.2': `
-            <div class="form-group"><label>Tanks Being Filled (Заполняемые танки: Ctrl+click для нескольких)</label><select id="orbDestTankMulti" class="tank-select-all" multiple size="4" style="height:auto; min-height:120px;"></select></div>
-            <div class="form-group"><label>Method of Bunkering (Метод бункеровки)</label><input type="text" id="orbMethod" placeholder="e.g. via bunker barge"></div>
-        `,
-        'H26.3': `
-            <div class="form-group"><label>Grade of Fuel Oil (Сорт топлива)</label><input type="text" id="orbGrade" placeholder="e.g. VLSFO"></div>
             <div class="row-2">
-                <div class="form-group"><label>Quantity Received (Принято, m³)</label><input type="number" id="orbQty" step="0.01"></div>
-                <div class="form-group"><label>Density @ 15°C (Плотность)</label><input type="number" id="orbDensity" step="0.001" placeholder="e.g. 0.9455"></div>
+                <div class="form-group"><label>26.3 Fuel Type</label><input type="text" id="hType" placeholder="e.g. HFO"></div>
+                <div class="form-group"><label>26.3 Sulphur (%)</label><input type="number" id="hSulphur" step="0.01" placeholder="e.g. 0.50"></div>
             </div>
-            <div class="form-group"><label>Sulphur Content (Сера, % m/m)</label><input type="number" id="orbSulfur" step="0.01" placeholder="e.g. 0.50"></div>
+            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:10px;">
+                <label style="font-size:0.75rem; color:var(--accent); margin-bottom:5px; display:block;">Tank 1 (Танк 1)</label>
+                <div class="form-group"><select id="hTank1Name" class="tank-select-all"></select></div>
+                <div class="row-2">
+                    <div class="form-group"><label>Added MT (Добавлено)</label><input type="number" id="hTank1Add" step="0.01"></div>
+                    <div class="form-group"><label>Now containing MT (Стало)</label><input type="number" id="hTank1Total" step="0.01"></div>
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:10px;">
+                <label style="font-size:0.75rem; color:var(--accent); margin-bottom:5px; display:block;">Tank 2 (Танк 2 - Опционально)</label>
+                <div class="form-group"><select id="hTank2Name" class="tank-select-all"></select></div>
+                <div class="row-2">
+                    <div class="form-group"><label>Added MT</label><input type="number" id="hTank2Add" step="0.01"></div>
+                    <div class="form-group"><label>Now containing MT</label><input type="number" id="hTank2Total" step="0.01"></div>
+                </div>
+            </div>
+            <div class="form-group"><label>Officer Name & Rank (Имя и должность)</label><input type="text" id="hOfficer" placeholder="e.g. A. Ivanov, Chief Engineer"></div>
         `,
-        'H26.4': `
-            <div class="form-group"><label>Grade of Lubricating Oil (Сорт масла)</label><input type="text" id="orbGrade" placeholder="e.g. SAE 40"></div>
-            <div class="form-group"><label>Quantity Received (Принято, м³)</label><input type="number" id="orbQty" step="0.01"></div>
+        'H_LUBE': `
+            <div class="form-group"><label>26.1 Port (Порт)</label><input type="text" id="hPort" placeholder="e.g. ROTTERDAM"></div>
+            <div class="row-2">
+                <div class="form-group"><label>26.2 Start Time (GMT)</label><input type="time" id="hStart"></div>
+                <div class="form-group"><label>26.2 Stop Time (GMT)</label><input type="time" id="hStop"></div>
+            </div>
+            <div class="row-2">
+                <div class="form-group"><label>26.4 Total Quantity (MT)</label><input type="number" id="hQty" step="0.01" placeholder="xx"></div>
+                <div class="form-group"><label>26.4 Type of Oil (Тип масла)</label><input type="text" id="hType" placeholder="e.g. SAE 40"></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:10px;">
+                <label style="font-size:0.75rem; color:var(--accent); margin-bottom:5px; display:block;">Tank 1 (Танк 1)</label>
+                <div class="form-group"><select id="hTank1Name" class="tank-select-all"></select></div>
+                <div class="row-2">
+                    <div class="form-group"><label>Added MT (Добавлено)</label><input type="number" id="hTank1Add" step="0.01"></div>
+                    <div class="form-group"><label>Now containing MT (Стало)</label><input type="number" id="hTank1Total" step="0.01"></div>
+                </div>
+            </div>
+            <div class="form-group"><label>Officer Name & Rank</label><input type="text" id="hOfficer" placeholder="e.g. A. Ivanov, Chief Engineer"></div>
         `,
         'I_ALARM': `
             <div class="row-2">
@@ -1149,8 +1193,89 @@
         const tank = (id) => getFullTankName(id);
 
         if(code === 'C11.1') {
-            text += `C 11.1: ${tank('orbSourceTank')}\n11.2: ${val('orbCap')} m³\n11.3: ${val('orbRetained')} m³`;
+            text += `C11.1 ${tank('orbSourceTank')}\n11.2 ${val('orbCap')} m³\n11.3 ${val('orbRetained')} m³`;
         } 
+        else if(code === 'C11.4') {
+            text += `C11.1 ${tank('orbDestTank')}\n11.2 ${val('orbCap')} m³\n11.3 ${val('orbRetained')} m³\n11.4 ${val('orbQty')} m³ collected from ${val('orbSource')}`;
+        }
+        else if(code === 'C12.1') {
+            text += `C12.1 ${val('orbQty')} m³ sludge from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained,\nto "${val('orbReceiver')}" during port stay (${val('orbPort')})`;
+        }
+        else if(code === 'C12.2') {
+            text += `C12.2 ${val('orbQty')} m³ ${val('orbSubstance')} from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained,\nto ${tank('orbDestTank')} retained in tank(s) ${val('orbRetainedDest')} m³`;
+        }
+        else if(code === 'C12.3') {
+            text += `C12.3 ${val('orbQty')} m³ sludge from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained,\nBurned in Incinerator for ${val('orbHours')} hours`;
+        }
+        else if(code === 'C12.4') {
+            if(val('orbMethod') === 'sludge') {
+                text += `C12.4 ${val('orbQty')} m³ sludge from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained,\nBurned in Boiler for ${val('orbHours')} hours`;
+            } else {
+                text += `C12.4 ${val('orbQty')} m³ water evaporated from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained.`;
+            }
+        }
+        else if(code === 'D15.1') {
+            text += `D13 ${val('orbQty')} m³ bilge water from ${tank('orbSourceTank')}\nCapacity ${val('orbCap')} m³, ${val('orbRetained')} m³ retained\n`;
+            text += `14\nStart: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT, stop: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\n`;
+            text += `15.1\nThrough 15 ppm equipment overboard\nPosition start: ${val('orbPosStart')}\nPosition stop: ${val('orbPosStop')}`;
+        }
+        else if(code === 'D15.2') {
+            text += `D13 ${val('orbQty')} m³ bilge water from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained\n`;
+            text += `14\nStart: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT, stop: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\n`;
+            text += `15.2\nTo port reception facilities of ${val('orbPort')}, receipt No: ${val('orbReceipt')}`;
+        }
+        else if(code === 'D15.3') {
+            text += `D13 ${val('orbQty')} m³ bilge water from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained\n`;
+            text += `14\nStart: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT, stop: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\n`;
+            text += `15.3\nTo ${tank('orbDestTank')}, retained in tank(s) ${val('orbRetainedDest')} m³`;
+        }
+        else if(code === 'F19') {
+            text += `F19 ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\n20 ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\n21 ${val('orbSource')}`;
+        }
+        else if(code === 'I_ALARM') {
+            text += `I Tested 15 ppm alarm in OCM unit\nStart: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT, stop: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\nFound working properly`;
+        }
+        else if(code === 'I_BILGE') {
+            text += `I Weekly Inventory of Bilge Water Tanks (listed under item 3.3)\n${tank('orbSourceTank')}\ncapacity ${val('orbCap')} m³, ${val('orbRetained')} m³ retained`;
+        }
+        else if(code === 'I_VALVE') {
+            var action = val('orbAction');
+            if(action === 'UNSEALED') {
+                text += `I Overboard valve ${val('orbSource')} from 15 ppm bilge water separator unit unsealed\nfor normal operation of 15 ppm unit\nseal No.: ${val('orbReceipt')}`;
+            } else {
+                text += `I Overboard valve ${val('orbSource')} from 15 ppm bilge water separator unit sealed\nseal No.: ${val('orbReceipt')}`;
+            }
+        }
+        else if(code === 'G') {
+            text += `G22 ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\n23 Place or Position: ${val('orbPosStart')}\n24 Type and Quantity of oily residue (if known): ${val('orbSource')}\n25 Circumstances of the discharge: ${val('orbText')}`;
+        }
+        else if(code === 'H_FUEL') {
+            text = `Date: ${dateStr}\nCode: H\n\n`;
+            text += `26.1 ${val('hPort')}\n`;
+            text += `26.2 Start ${dateStr}-${val('hStart')} Stop ${dateStr}-${val('hStop')}\n`;
+            text += `26.3 ${val('hQty')} MT of ${val('hIso')} ${val('hType')} ${val('hSulphur')} % S bunkered in tanks:\n`;
+            
+            const t1Name = tank('hTank1Name');
+            if(t1Name) text += `${val('hTank1Add')} MT added to ${t1Name} now containing ${val('hTank1Total')} MT\n`;
+            
+            const t2Name = tank('hTank2Name');
+            if(t2Name && val('hTank2Add')) text += `${val('hTank2Add')} MT added to ${t2Name} now containing ${val('hTank2Total')} MT\n`;
+            
+            text += `signed: (Officer-in-charge, Name & Rank) ${val('hOfficer')} ${dateStr}`;
+            return showOrbResult(text);
+        }
+        else if(code === 'H_LUBE') {
+            text = `Date: ${dateStr}\nCode: H\n\n`;
+            text += `26.1 ${val('hPort')}\n`;
+            text += `26.2 Start ${dateStr}-${val('hStart')} Stop ${dateStr}-${val('hStop')}\n`;
+            text += `26.4 ${val('hQty')} MT ${val('hType')} bunkered in tanks:\n`;
+            
+            const t1Name = tank('hTank1Name');
+            if(t1Name) text += `${val('hTank1Add')} MT added to ${t1Name} now containing ${val('hTank1Total')} MT\n`;
+            
+            text += `signed: (Officer-in-charge, Name & Rank) ${val('hOfficer')} ${dateStr}`;
+            return showOrbResult(text);
+        }
         else if(code === 'C11.4') {
             text += `C 11.4: ${val('orbQty')} m³ collected from ${val('orbSource')}\nRetained in ${tank('orbDestTank')}: ${val('orbRetained')} m³`;
         }
@@ -1199,35 +1324,47 @@
         else if(code === 'G') {
             text += `G 22: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\n23: PLACE OR POSITION: ${val('orbPosStart')}\n24: TYPE AND QUANTITY: ${val('orbSource')}\n25: CIRCUMSTANCES: ${val('orbText')}`;
         }
-        else if(code === 'H26.1') {
-            text += `H 26.1: BUNKERING START: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\nSTOP: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\nPORT/POSITION: ${val('orbPosStart')}\nMETHOD: ${val('orbMethod')}`;
+        else if(code === 'H_FUEL') {
+            text = `Date: ${dateStr}\nCode: H\n\n`;
+            text += `26.1 ${val('hPort')}\n`;
+            text += `26.2 Start ${dateStr}-${val('hStart')} Stop ${dateStr}-${val('hStop')}\n`;
+            text += `26.3 ${val('hQty')} MT of ${val('hGrade')} bunkered in tanks:\n`;
+            
+            const t1Name = tank('hTank1Name');
+            if(t1Name) text += `${val('hTank1Add')} MT added to ${t1Name} now containing ${val('hTank1Total')} MT\n`;
+            
+            const t2Name = tank('hTank2Name');
+            if(t2Name && val('hTank2Add')) text += `${val('hTank2Add')} MT added to ${t2Name} now containing ${val('hTank2Total')} MT\n`;
+            
+            text += `signed: (Officer-in-charge, Name & Rank) ${val('hOfficer')} ${dateStr}`;
+            return showOrbResult(text);
         }
-        else if(code === 'H26.2') {
-            const selMulti = document.getElementById('orbDestTankMulti');
-            const chosen = selMulti ? Array.from(selMulti.selectedOptions).map(o => o.text) : [];
-            if(chosen.length === 0) {
-                text += `H 26.2: NO TANK SELECTED\nMETHOD OF BUNKERING: ${val('orbMethod')}`;
-            } else {
-                chosen.forEach((t, i) => {
-                    text += `H 26.2 (${i+1}/${chosen.length}): TANK BEING FILLED: ${t}\nMETHOD OF BUNKERING: ${val('orbMethod')}\n`;
-                });
-                text = text.trimEnd();
-            }
-        }
-        else if(code === 'H26.3') {
-            text += `H 26.3: GRADE: ${val('orbGrade')}\nQUANTITY: ${val('orbQty')} m³\nDENSITY @ 15°C: ${val('orbDensity')} g/cm³\nSULPHUR: ${val('orbSulfur')}% m/m`;
-        }
-        else if(code === 'H26.4') {
-            text += `H 26.4: GRADE: ${val('orbGrade')}\nQUANTITY: ${val('orbQty')} m³`;
+        else if(code === 'H_LUBE') {
+            text = `Date: ${dateStr}\nCode: H\n\n`;
+            text += `26.1 ${val('hPort')}\n`;
+            text += `26.2 Start ${dateStr}-${val('hStart')} Stop ${dateStr}-${val('hStop')}\n`;
+            text += `26.4 ${val('hQty')} MT ${val('hGrade')} bunkered in tanks:\n`;
+            
+            const t1Name = tank('hTank1Name');
+            if(t1Name) text += `${val('hTank1Add')} MT added to ${t1Name} now containing ${val('hTank1Total')} MT\n`;
+            
+            text += `signed: (Officer-in-charge, Name & Rank) ${val('hOfficer')} ${dateStr}`;
+            return showOrbResult(text);
         }
 
-        // Добавляем подпись
+        // Добавляем подпись для остальных кодов
         text += `\nSigned: (Officer-in-charge, Name & Rank) ${dateStr}`;
+        
+        showOrbResult(text);
+    };
 
+    function showOrbResult(text) {
         document.getElementById('resOrb').innerText = text;
         document.getElementById('resOrb').style.display = 'block';
         document.getElementById('btnCopyOrb').style.display = 'block';
-    };
+        document.getElementById('btnSaveOrb').style.display = 'block';
+        document.getElementById('btnExportOrb').style.display = 'block';
+    }
 
     // === ORB HISTORY ===
     let orbHistory = JSON.parse(localStorage.getItem('orb_history')) || [];

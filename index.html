@@ -27,13 +27,11 @@
     
     /* КРАСИВЫЙ ФОН С ЯКОРЕМ (ФИКСИРОВАННЫЙ) */
     body { 
-        background-color: transparent; 
+        background-color: var(--bg); /* Плотный цвет */
         color: var(--text); 
         padding: calc(16px + env(safe-area-inset-top)) 16px 100px 16px; 
         min-height: 100vh;
         -webkit-font-smoothing: antialiased;
-        position: relative;
-        isolation: isolate; /* Создает жесткий контекст, чтобы фон не лез наверх */
     }
 
     /* Отдельный слой для фона */
@@ -41,17 +39,15 @@
         content: '';
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        z-index: -1; /* Уходит глубоко назад */
-        background-color: var(--bg);
+        z-index: -2; /* Уводим глубоко назад */
         background-image: 
-            /* Заменили 'ffffff' (белый) на '1E2D48' (темно-синий цвет границ) */
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2D48' stroke-width='0.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='5' r='3'%3E%3C/circle%3E%3Cline x1='12' y1='22' x2='12' y2='8'%3E%3C/line%3E%3Cpath d='M5 12H2a10 10 0 0 0 20 0h-3'%3E%3C/path%3E%3C/svg%3E"),
             radial-gradient(circle at 50% 0%, #0D1B2A 0%, #050B14 70%);
         background-position: center 20%, center top;
         background-repeat: no-repeat;
         background-size: 80vw, 100% 100%;
         pointer-events: none;
-        opacity: 0.6; /* Приглушаем весь фон, чтобы он не был слишком ярким */
+        opacity: 0.4; /* Делаем якорь едва заметным */
     }
 
     /* Кастомный скроллбар */
@@ -223,18 +219,20 @@
         display: flex;
         align-items: center;
         gap: 16px;
-        background: rgba(30, 41, 59, 0.4);
-        border: 1px solid var(--border);
+        background: #0D1627; /* Плотный, непробиваемый цвет */
+        border: 1px solid #1E2D48;
         border-radius: 16px;
         padding: 20px 16px;
         cursor: pointer;
         transition: all 0.2s ease;
         text-decoration: none;
         color: var(--text);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .dash-card:active {
         transform: scale(0.98);
-        background: rgba(30, 41, 59, 0.8);
+        background: #131C2E;
+        border-color: var(--accent);
     }
     .dash-icon {
         width: 48px;
@@ -323,7 +321,7 @@
         <!-- Cylinder Oil -->
         <div class="dash-card" onclick="goToTab('engine', 'lube')">
             <div class="dash-icon">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
             </div>
             <div class="dash-content">
                 <div class="dash-title">Lube Oil Calc</div>

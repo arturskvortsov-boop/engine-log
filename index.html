@@ -16,15 +16,11 @@
         --yellow: #fbbf24; --red: #f87171; --green: #4ade80;
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 80px; }
+    body { background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 100px; }
     
     .header { text-align: center; margin-bottom: 20px; }
     .header h1 { font-size: 1.2rem; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
     .header p { font-size: 0.7rem; color: var(--text-muted); }
-
-    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--card); padding: 4px; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; }
-    .tab-btn { flex: 1; padding: 8px 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
-    .tab-btn.active { background: var(--accent); color: #000; }
 
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
     .card h2 { font-size: 0.95rem; color: var(--yellow); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
@@ -53,20 +49,12 @@
     input:not([type="checkbox"]), select, textarea { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; min-width: 0 !important; -webkit-appearance: none; appearance: none; }
     input[type="date"], input[type="time"] { min-height: 42px; line-height: normal; }
     
-    /* Фикс для чекбоксов в чек-листе (чтобы не растягивались) */
+    /* Фикс для чекбоксов */
     input[type="checkbox"] {
-        width: 20px !important;
-        height: 20px !important;
-        min-width: 20px !important;
-        max-width: 20px !important;
-        flex: 0 0 20px !important;
-        margin: 0 !important;
-        -webkit-appearance: checkbox !important;
-        appearance: checkbox !important;
-        cursor: pointer;
+        width: 20px !important; height: 20px !important; min-width: 20px !important; max-width: 20px !important;
+        flex: 0 0 20px !important; margin: 0 !important; -webkit-appearance: checkbox !important; appearance: checkbox !important; cursor: pointer;
     }
 
-    /* SUB-TABS (Spares) */
     /* НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (GLASSMORPHISM) */
     .main-nav {
         position: fixed;
@@ -83,21 +71,9 @@
         box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
     }
     .main-tab-btn {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        border: none;
-        background: transparent;
-        color: var(--text-muted);
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 0.65rem;
-        transition: all 0.3s ease;
-        padding: 6px 0;
-        border-radius: 10px;
+        flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+        border: none; background: transparent; color: var(--text-muted); font-weight: 600; cursor: pointer; font-size: 0.65rem;
+        transition: all 0.3s ease; padding: 6px 0; border-radius: 10px;
     }
     .main-tab-btn span { font-size: 1.2rem; transition: transform 0.3s; }
     .main-tab-btn.active { color: var(--yellow); }
@@ -105,38 +81,17 @@
 
     /* ВЕРХНИЕ ПОД-ВКЛАДКИ (iOS СЕГМЕНТ-КОНТРОЛ) */
     #globalSubTabs {
-        display: none;
-        margin-bottom: 20px;
-        background: var(--card);
-        padding: 4px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        gap: 4px;
+        display: none; margin-bottom: 20px; background: var(--card); padding: 4px; border-radius: 12px;
+        border: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px;
     }
     #globalSubTabs::-webkit-scrollbar { display: none; }
     .sub-tab-btn {
-        flex: 1;
-        padding: 8px 12px;
-        border: none;
-        background: transparent;
-        color: var(--text-muted);
-        font-weight: 600;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        white-space: nowrap;
-        transition: all 0.2s;
+        flex: 1; padding: 8px 12px; border: none; background: transparent; color: var(--text-muted);
+        font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; transition: all 0.2s;
     }
     .sub-tab-btn.active {
-        background: rgba(56, 189, 248, 0.15);
-        color: var(--accent);
-        box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.3);
+        background: rgba(56, 189, 248, 0.15); color: var(--accent); box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.3);
     }
-    
-    /* Отступ снизу, чтобы нижнее меню не перекрывало контент */
-    body { padding-bottom: 100px !important; }
 
     /* INVENTORY FLAGS */
     .inv-warning { color: var(--red); font-weight: 700; }
@@ -775,7 +730,7 @@
 </div>
 
 <script>
-    // === TABS LOGIC ===
+    // === TABS LOGIC (REWRITTEN FOR RELIABILITY) ===
     const TAB_GROUPS = {
         marpol: [
             { id: 'chg', label: '⛽ Changeover' },
@@ -807,8 +762,12 @@
     function switchTab(tabId, btnElement) {
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
         const content = document.getElementById('tab-' + tabId);
-        if(content) content.style.display = 'block';
-        
+        if(content) {
+            content.style.display = 'block';
+        } else {
+            console.error("Tab content not found: tab-" + tabId);
+        }
+
         if(btnElement) {
             document.querySelectorAll('#globalSubTabs .sub-tab-btn').forEach(b => b.classList.remove('active'));
             btnElement.classList.add('active');
@@ -819,21 +778,27 @@
         const container = document.getElementById('globalSubTabs');
         const tabs = TAB_GROUPS[group];
         if(!tabs) return;
-        
-        container.innerHTML = tabs.map((t, i) => 
-            `<button class="sub-tab-btn ${i === 0 ? 'active' : ''}" onclick="switchTab('${t.id}', this)">${t.label}</button>`
+
+        container.innerHTML = tabs.map((t, i) =>
+            `<button class="sub-tab-btn ${i === 0 ? 'active' : ''}" data-tabid="${t.id}">${t.label}</button>`
         ).join('');
-        
+
+        container.querySelectorAll('.sub-tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                switchTab(this.dataset.tabid, this);
+            });
+        });
+
         container.style.display = 'flex';
         if(tabs.length > 0) switchTab(tabs[0].id, container.querySelector('.sub-tab-btn'));
     }
 
     document.querySelectorAll('.main-tab-btn').forEach(btn => {
-        btn.onclick = () => {
+        btn.addEventListener('click', function() {
             document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderSubTabs(btn.dataset.group);
-        };
+            this.classList.add('active');
+            renderSubTabs(this.dataset.group);
+        });
     });
     
     // Запуск первой вкладки по умолчанию
@@ -852,7 +817,9 @@
 
     // === COPY FUNCTION ===
     function setupCopy(btnId, boxId) {
-        document.getElementById(btnId).onclick = function() {
+        const btn = document.getElementById(btnId);
+        if(!btn) return;
+        btn.onclick = function() {
             const text = document.getElementById(boxId).innerText;
             navigator.clipboard.writeText(text).then(() => {
                 this.textContent = '✅ Copied!';
@@ -874,7 +841,7 @@
         {id: 't5', name: 'OILY BILGE TANK', loc: 'FR NO. 26-30 PORT', type: 'bilge'},
         {id: 't6', name: 'BILGE HOLDING TANK', loc: 'FR NO. 13-19 CENTER', type: 'bilge'}
     ];
-    localStorage.setItem('vessel_tanks', JSON.stringify(tanks)); // Save defaults if empty
+    localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
 
     function renderTankList() {
         const list = document.getElementById('tankList');
@@ -1171,13 +1138,13 @@
         fillSelect('.tank-select-sludge', sludgeTanks, 'SLUDGE TANK');
         fillSelect('.tank-select-bilge', bilgeTanks, 'OILY BILGE TANK');
         
-        // Для всех танков (например, при переводе шлама в льяльные воды)
         document.querySelectorAll('.tank-select-all').forEach(sel => {
             sel.innerHTML = tanks.map(t => `<option value="${t.name} ${t.loc ? t.loc : ''}">${t.name} ${t.loc ? t.loc : ''}</option>`).join('');
         });
     }
 
     function renderOrbFields() {
+        if(!dynamicContainer) return;
         dynamicContainer.innerHTML = orbFields[codeSelect.value];
         populateTankSelects();
     }
@@ -1276,81 +1243,6 @@
             text += `signed: (Officer-in-charge, Name & Rank) ${val('hOfficer')} ${dateStr}`;
             return showOrbResult(text);
         }
-        else if(code === 'C11.4') {
-            text += `C 11.4: ${val('orbQty')} m³ collected from ${val('orbSource')}\nRetained in ${tank('orbDestTank')}: ${val('orbRetained')} m³`;
-        }
-        else if(code === 'C12.1') {
-            text += `C 12.1: ${val('orbQty')} m³ sludge from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained.\nTransferred to ${val('orbReceiver')} during port stay (${val('orbPort')})`;
-        }
-        else if(code === 'C12.2') {
-            text += `C 12.2: ${val('orbQty')} m³ sludge transferred from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained,\nto ${tank('orbDestTank')}, ${val('orbRetainedDest')} m³ retained`;
-        }
-        else if(code === 'C12.3') {
-            text += `C 12.3: ${val('orbQty')} m³ sludge from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained,\nBurned in Incinerator for ${val('orbHours')} hours`;
-        }
-        else if(code === 'C12.4') {
-            text += `C 12.4: ${val('orbQty')} m³ water evaporated from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained.`;
-        }
-        else if(code === 'D15.1') {
-            text += `D 13: ${val('orbQty')} m³ bilge water from ${tank('orbSourceTank')}\nCapacity ${val('orbCap')} m³, ${val('orbRetained')} m³ retained\n`;
-            text += `14 START: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\nSTOP: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\n`;
-            text += `15.1 THROUGH 15 PPM EQUIPMENT OVERBOARD\nPOSITION START: ${val('orbPosStart')}\nPOSITION STOP: ${val('orbPosStop')}`;
-        }
-        else if(code === 'D15.2') {
-            text += `D 13: ${val('orbQty')} m³ bilge water from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained\n`;
-            text += `15.2 TO PORT RECEPTION FACILITIES OF ${val('orbPort')}, RECEIPT NO: ${val('orbReceipt')}`;
-        }
-        else if(code === 'D15.3') {
-            text += `D 13: ${val('orbQty')} m³ bilge water from ${tank('orbSourceTank')}, ${val('orbRetained')} m³ retained\n`;
-            text += `15.3 TO ${tank('orbDestTank')}, ${val('orbRetainedDest')} m³ retained in tank`;
-        }
-        else if(code === 'F19') {
-            text += `F 19: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\n20: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\n21: ${val('orbSource')}`;
-        }
-        else if(code === 'I_ALARM') {
-            text += `I: TESTED 15 PPM ALARM IN OCM UNIT\nSTART: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\nSTOP: ${val('orbStopGmt')}H GMT / ${val('orbStopLt')}H LT\nFOUND WORKING PROPERLY`;
-        }
-        else if(code === 'I_BILGE') {
-            text += `I: WEEKLY INVENTORY OF BILGE HOLDING TANK ${tank('orbSourceTank')}\nCAPACITY ${val('orbCap')} m³; ${val('orbRetained')} m³ RETAINED`;
-        }
-        else if(code === 'I_VALVE') {
-            var action = val('orbAction');
-            if(action === 'UNSEALED') {
-                text += `I: OVERBOARD VALVE ${val('orbSource')} FROM 15 PPM BILGE WATER SEPARATOR UNIT UNSEALED, SEAL NO. ${val('orbReceipt')}`;
-            } else {
-                text += `I: OVERBOARD VALVE ${val('orbSource')} FROM 15 PPM BILGE WATER SEPARATOR SEALED, SEAL NO. ${val('orbReceipt')}`;
-            }
-        }
-        else if(code === 'G') {
-            text += `G 22: ${val('orbStartGmt')}H GMT / ${val('orbStartLt')}H LT\n23: PLACE OR POSITION: ${val('orbPosStart')}\n24: TYPE AND QUANTITY: ${val('orbSource')}\n25: CIRCUMSTANCES: ${val('orbText')}`;
-        }
-        else if(code === 'H_FUEL') {
-            text = `Date: ${dateStr}\nCode: H\n\n`;
-            text += `26.1 ${val('hPort')}\n`;
-            text += `26.2 Start ${dateStr}-${val('hStart')} Stop ${dateStr}-${val('hStop')}\n`;
-            text += `26.3 ${val('hQty')} MT of ${val('hGrade')} bunkered in tanks:\n`;
-            
-            const t1Name = tank('hTank1Name');
-            if(t1Name) text += `${val('hTank1Add')} MT added to ${t1Name} now containing ${val('hTank1Total')} MT\n`;
-            
-            const t2Name = tank('hTank2Name');
-            if(t2Name && val('hTank2Add')) text += `${val('hTank2Add')} MT added to ${t2Name} now containing ${val('hTank2Total')} MT\n`;
-            
-            text += `signed: (Officer-in-charge, Name & Rank) ${val('hOfficer')} ${dateStr}`;
-            return showOrbResult(text);
-        }
-        else if(code === 'H_LUBE') {
-            text = `Date: ${dateStr}\nCode: H\n\n`;
-            text += `26.1 ${val('hPort')}\n`;
-            text += `26.2 Start ${dateStr}-${val('hStart')} Stop ${dateStr}-${val('hStop')}\n`;
-            text += `26.4 ${val('hQty')} MT ${val('hGrade')} bunkered in tanks:\n`;
-            
-            const t1Name = tank('hTank1Name');
-            if(t1Name) text += `${val('hTank1Add')} MT added to ${t1Name} now containing ${val('hTank1Total')} MT\n`;
-            
-            text += `signed: (Officer-in-charge, Name & Rank) ${val('hOfficer')} ${dateStr}`;
-            return showOrbResult(text);
-        }
 
         // Добавляем подпись для остальных кодов
         text += `\nSigned: (Officer-in-charge, Name & Rank) ${dateStr}`;
@@ -1441,13 +1333,6 @@
         const today = new Date().toISOString().slice(0, 10);
         link.download = `ORB_History_${today}.csv`;
         link.click();
-    };
-
-    const _origGenOrb = document.getElementById('btnGenOrb').onclick;
-    document.getElementById('btnGenOrb').onclick = function() {
-        _origGenOrb.call(this);
-        document.getElementById('btnSaveOrb').style.display = 'block';
-        document.getElementById('btnExportOrb').style.display = 'block';
     };
 
     // === FUEL CALC ===
@@ -2270,7 +2155,6 @@
     };
 
     // === LUBE OIL ===
-    // 1. Cylinder Oil Feed Rate
     document.getElementById('btnCalcCyl').onclick = () => {
         const power = parseFloat(document.getElementById('coPower').value);
         const rate = parseFloat(document.getElementById('coRate').value);
@@ -2292,7 +2176,6 @@
             `Approx. Volume: ${litersPerDay.toFixed(1)} Liters`;
     };
 
-    // 2. System Oil Top-Up
     document.getElementById('btnCalcSys').onclick = () => {
         const current = parseFloat(document.getElementById('soCurrent').value);
         const target = parseFloat(document.getElementById('soTarget').value);
@@ -2309,7 +2192,6 @@
             `Required Top-Up: ${diff.toFixed(2)} m³`;
     };
 
-    // 3. ROB Tracker
     let lubeRobItems = JSON.parse(localStorage.getItem('el_lube_rob')) || [];
 
     function renderLubeRob() {

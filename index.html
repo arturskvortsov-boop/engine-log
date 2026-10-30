@@ -25,21 +25,30 @@
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
     
-    /* КРАСИВЫЙ ФОН С ЯКОРЕМ */
+    /* КРАСИВЫЙ ФОН С ЯКОРЕМ (ФИКСИРОВАННЫЙ) */
     body { 
         background-color: var(--bg);
+        color: var(--text); 
+        padding: calc(16px + env(safe-area-inset-top)) 16px 100px 16px; 
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Отдельный слой для фона, чтобы он не дергался и не перекрывал контент */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: -1;
         background-image: 
-            /* Водяной знак якоря (SVG) */
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='0.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='5' r='3'%3E%3C/circle%3E%3Cline x1='12' y1='22' x2='12' y2='8'%3E%3C/line%3E%3Cpath d='M5 12H2a10 10 0 0 0 20 0h-3'%3E%3C/path%3E%3C/svg%3E"),
             radial-gradient(circle at 50% 0%, #0D1B2A 0%, #050B14 70%);
         background-position: center 20%, center top;
         background-repeat: no-repeat;
         background-size: 80vw, 100% 100%;
-        background-attachment: fixed, fixed;
-        color: var(--text); 
-        padding: calc(16px + env(safe-area-inset-top)) 16px 100px 16px; 
-        min-height: 100vh;
-        -webkit-font-smoothing: antialiased;
+        pointer-events: none; /* Позволяет кликать сквозь фон */
     }
 
     /* Кастомный скроллбар */
@@ -1098,7 +1107,7 @@
                     <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:8px; align-items:center;">
                         <div style="font-size:0.85rem;">
                             Vol: <b>${t.volume.toFixed(1)} m³</b> 
-                            <span style="color:var(--green); margin-left:6px;">(<b>${currentMT.toFixed(1)} MT</b>)</span>
+                            <span style="color:var(--green); margin-left:6px;">(<b>${currentMT.toFixed(2)} MT</b>)</span>
                         </div>
                         <span style="font-size:0.7rem; color:var(--text-muted);">Cap: ${t.capacity.toFixed(1)} m³ (<b>${fillPercent.toFixed(1)}%</b>)</span>
                     </div>
@@ -1130,7 +1139,7 @@
     window.updateTankTemp = function(id, newTemp) {
         const t = tanks.find(x => x.id === id);
         if(!t) return;
-        const val = parseFloat(newTemp);
+        const val = parseFloat(newTemp.toString().replace(',', '.'));
         if(!isNaN(val) && val > 0 && val < 100) {
             t.temp = val;
             localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
@@ -1144,7 +1153,7 @@
     window.updateTankDensity = function(id, newDensity) {
         const t = tanks.find(x => x.id === id);
         if(!t) return;
-        const val = parseFloat(newDensity);
+        const val = parseFloat(newDensity.toString().replace(',', '.'));
         if(!isNaN(val) && val > 0.5 && val < 1.1) {
             t.density = val;
             localStorage.setItem('vessel_tanks', JSON.stringify(tanks));

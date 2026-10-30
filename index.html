@@ -456,27 +456,53 @@
 
 <!-- TAB 4: TANKS SETUP -->
 <div id="tab-tanks" class="tab-content" style="display:none;">
-    <div class="card">
-        <h2>Vessel Tanks Setup</h2>
-        
-        <div class="form-group">
-            <label>Tank Name (as per IOPPC)</label>
-            <input type="text" id="newTankName" placeholder="e.g. SLUDGE TANK">
-        </div>
-        <div class="form-group">
-            <label>Location / Frame No. (Optional)</label>
-            <input type="text" id="newTankLoc" placeholder="e.g. FR NO. 21-28 PORT">
-        </div>
-        <div class="form-group">
-            <label>Tank Category</label>
-            <select id="newTankType">
-                <option value="sludge">Oil Residue / Sludge (Sec 3.1)</option>
-                <option value="bilge">Bilge Holding (Sec 3.3)</option>
-            </select>
-        </div>
-        <button class="btn" id="btnAddTank">+ Add Tank</button>
+    <div class="tabs" style="margin-bottom:12px;">
+        <button class="sub-tab-btn active" data-tankgroup="fuel">⛽ Fuel</button>
+        <button class="sub-tab-btn" data-tankgroup="lube">🧴 Lube Oil</button>
+        <button class="sub-tab-btn" data-tankgroup="residue">🛢️ Sludge & Bilge</button>
+    </div>
 
-        <div id="tankList" style="margin-top: 15px;"></div>
+    <!-- BUNKER PLANNER -->
+    <div class="card" id="bunkerPlannerCard" style="display:none; border-color:var(--yellow);">
+        <h2>Bunker Planner (Планирование приема)</h2>
+        <div class="form-group">
+            <label>Planned Density (Планируемая плотность, t/m³)</label>
+            <input type="number" id="planDensity" step="0.001" value="0.950" style="border-color:var(--yellow);">
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Расчет свободного места до 85% заполнения.</div>
+    </div>
+
+    <div class="card">
+        <h2 id="tankGroupTitle">Fuel Tanks</h2>
+        <div id="tankCardsContainer"></div>
+        
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <h3 style="font-size:0.85rem; color:var(--accent); margin-bottom:10px;">+ Add New Tank</h3>
+            <div class="form-group">
+                <label>Tank Name (as per IOPPC)</label>
+                <input type="text" id="newTankName" placeholder="e.g. NO.1 HFO TANK">
+            </div>
+            <div class="form-group">
+                <label>Location / Frame No. (Optional)</label>
+                <input type="text" id="newTankLoc" placeholder="e.g. FR NO. 21-28 PORT">
+            </div>
+            <div class="row-2">
+                <div class="form-group">
+                    <label>Capacity (100%, m³)</label>
+                    <input type="number" id="newTankCap" step="0.1" placeholder="e.g. 500">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="newTankType">
+                        <option value="fuel">Fuel (Топливо)</option>
+                        <option value="lube">Lube Oil (Масло)</option>
+                        <option value="sludge">Sludge (Шлам)</option>
+                        <option value="bilge">Bilge (Льяла)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" id="btnAddTank">+ Add Tank to Group</button>
+        </div>
     </div>
 </div>
 
@@ -835,42 +861,129 @@
     setupCopy('btnCopyLop', 'resLop');
     setupCopy('btnCopyNo', 'resNo');
 
-    // === TANKS MANAGEMENT ===
-    let tanks = JSON.parse(localStorage.getItem('vessel_tanks')) || [
-        {id: 't1', name: 'INCI W.O. SERV TANK', loc: 'FR NO. 17-19 PORT', type: 'sludge'},
-        {id: 't2', name: 'INCI W.O. SETTL TANK', loc: 'FR NO. 17-19 PORT', type: 'sludge'},
-        {id: 't3', name: 'SLUDGE TANK', loc: 'FR NO. 21-28 PORT', type: 'sludge'},
-        {id: 't4', name: 'M.E. SCAV AIR BOX DRAIN TANK', loc: 'FR NO. 25-26 PORT', type: 'sludge'},
-        {id: 't5', name: 'OILY BILGE TANK', loc: 'FR NO. 26-30 PORT', type: 'bilge'},
-        {id: 't6', name: 'BILGE HOLDING TANK', loc: 'FR NO. 13-19 CENTER', type: 'bilge'}
-    ];
+    // === TANKS MANAGEMENT V2 (SMART TANKS) ===
+    let tanks = JSON.parse(localStorage.getItem('vessel_tanks')) || [];
+    
+    // Если старые танки без объема, обновляем структуру
+    tanks = tanks.map(t => ({
+        id: t.id,
+        name: t.name,
+        loc: t.loc || '',
+        type: t.type || 'sludge',
+        capacity: t.capacity || 100,
+        volume: t.volume || 0
+    }));
+
+    if(tanks.length === 0) {
+        tanks = [
+            {id: 't1', name: 'NO.1 HFO TANK', loc: 'P', type: 'fuel', capacity: 500, volume: 200},
+            {id: 't2', name: 'NO.2 HFO TANK', loc: 'S', type: 'fuel', capacity: 500, volume: 150},
+            {id: 't3', name: 'MGO TANK', loc: 'C', type: 'fuel', capacity: 100, volume: 50},
+            {id: 't4', name: 'MAIN LO TANK', loc: 'C', type: 'lube', capacity: 15, volume: 8},
+            {id: 't5', name: 'CYL LO TANK', loc: 'C', type: 'lube', capacity: 5, volume: 3},
+            {id: 't6', name: 'SLUDGE TANK', loc: 'FR 21-28 P', type: 'sludge', capacity: 20, volume: 5},
+            {id: 't7', name: 'BILGE HOLDING TANK', loc: 'FR 13-19 C', type: 'bilge', capacity: 30, volume: 10}
+        ];
+    }
     localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
 
-    function renderTankList() {
-        const list = document.getElementById('tankList');
-        if (!list) return;
-        
-        if (tanks.length === 0) {
-            list.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No tanks added yet.</div>';
+    let currentTankGroup = 'fuel';
+
+    function renderTankCards() {
+        const container = document.getElementById('tankCardsContainer');
+        const title = document.getElementById('tankGroupTitle');
+        const planner = document.getElementById('bunkerPlannerCard');
+        if(!container) return;
+
+        // Обновляем заголовок и планировщик
+        if(currentTankGroup === 'fuel') { title.textContent = 'Fuel Tanks'; planner.style.display = 'block'; }
+        else if(currentTankGroup === 'lube') { title.textContent = 'Lube Oil Tanks'; planner.style.display = 'block'; }
+        else { title.textContent = 'Sludge & Bilge Tanks'; planner.style.display = 'none'; }
+
+        const filteredTanks = tanks.filter(t => {
+            if(currentTankGroup === 'residue') return (t.type === 'sludge' || t.type === 'bilge');
+            return t.type === currentTankGroup;
+        });
+
+        if(filteredTanks.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No tanks in this group.</div>';
             return;
         }
-        
-        list.innerHTML = tanks.map(t => `
-            <div class="tank-list-item">
-                <div>
-                    <div style="font-weight:600; font-size:0.9rem;">${t.name}</div>
-                    <div style="font-size:0.7rem; color:var(--text-muted);">${t.loc || ''} (${t.type === 'sludge' ? 'Sludge 3.1' : 'Bilge 3.3'})</div>
+
+        const density = parseFloat(document.getElementById('planDensity').value) || 0.95;
+
+        container.innerHTML = filteredTanks.map(t => {
+            const fillPercent = Math.min((t.volume / t.capacity) * 100, 100);
+            const isHigh = fillPercent >= 85;
+            const barColor = isHigh ? 'var(--red)' : (fillPercent > 60 ? 'var(--yellow)' : 'var(--green)');
+            const warning = isHigh ? '<span style="color:var(--red); font-weight:bold;">⚠️ HIGH LEVEL</span>' : '';
+            
+            // Bunker Calc (Max to 85%)
+            let bunkerCalcHTML = '';
+            if(currentTankGroup !== 'residue') {
+                const spaceTo85 = (t.capacity * 0.85) - t.volume;
+                if(spaceTo85 > 0) {
+                    const mtTo85 = spaceTo85 * density;
+                    bunkerCalcHTML = `
+                        <div style="font-size:0.75rem; color:var(--accent); margin-top:4px; background:rgba(56,189,248,0.1); padding:4px 8px; border-radius:4px;">
+                            ⛽ Free to 85%: <b>${spaceTo85.toFixed(1)} m³</b> (~${mtTo85.toFixed(1)} MT @ ${density})
+                        </div>
+                    `;
+                } else {
+                     bunkerCalcHTML = `
+                        <div style="font-size:0.75rem; color:var(--red); margin-top:4px; background:rgba(248,113,113,0.1); padding:4px 8px; border-radius:4px;">
+                            ⛽ No space to 85% limit!
+                        </div>
+                    `;
+                }
+            }
+
+            return `
+                <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                        <div>
+                            <div style="font-weight:600; font-size:0.9rem; color:var(--text);">${t.name} ${warning}</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted);">${t.loc} | Type: ${t.type.toUpperCase()}</div>
+                        </div>
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn" style="margin-top:0; padding:4px 8px; font-size:0.7rem; background:var(--border); color:var(--text);" onclick="updateTankVolume('${t.id}')">✏️ Vol</button>
+                            <button class="btn-danger" style="padding:4px 8px; font-size:0.7rem;" onclick="deleteTank('${t.id}')">Del</button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px;">
+                        <span>Vol: <b>${t.volume.toFixed(1)} m³</b></span>
+                        <span>Cap: ${t.capacity.toFixed(1)} m³ (<b>${fillPercent.toFixed(1)}%</b>)</span>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div style="width:100%; height:12px; background:var(--card); border-radius:6px; overflow:hidden; border:1px solid var(--border);">
+                        <div style="height:100%; width:${fillPercent}%; background:${barColor}; transition: width 0.3s;"></div>
+                    </div>
+
+                    ${bunkerCalcHTML}
                 </div>
-                <button class="btn-danger" onclick="deleteTank('${t.id}')">Del</button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
+    window.updateTankVolume = function(id) {
+        const t = tanks.find(x => x.id === id);
+        if(!t) return;
+        const newVol = prompt(`Введите текущий объем для ${t.name} (м³).\nМаксимум: ${t.capacity} м³`, t.volume);
+        if(newVol !== null && !isNaN(newVol)) {
+            t.volume = Math.min(parseFloat(newVol), t.capacity);
+            localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
+            renderTankCards();
+            renderOrbFields();
+        }
+    };
+
     window.deleteTank = function(id) {
-        if(!confirm('Delete this tank?')) return;
+        if(!confirm('Удалить этот танк?')) return;
         tanks = tanks.filter(t => t.id !== id);
         localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
-        renderTankList();
+        renderTankCards();
         renderOrbFields(); 
     };
 
@@ -878,14 +991,38 @@
         const name = document.getElementById('newTankName').value.trim();
         const loc = document.getElementById('newTankLoc').value.trim();
         const type = document.getElementById('newTankType').value;
-        if (!name) { alert('Enter tank name'); return; }
+        const cap = parseFloat(document.getElementById('newTankCap').value);
         
-        tanks.push({ id: 't_' + Date.now(), name: name, loc: loc, type: type });
+        if (!name || isNaN(cap) || cap <= 0) { alert('Введите название и вместимость'); return; }
+        
+        tanks.push({ id: 't_' + Date.now(), name: name, loc: loc, type: type, capacity: cap, volume: 0 });
         localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
+        
         document.getElementById('newTankName').value = '';
         document.getElementById('newTankLoc').value = '';
-        renderTankList();
+        document.getElementById('newTankCap').value = '';
+        
+        // Переключаем вкладку на ту, куда добавили танк
+        if(type === 'sludge' || type === 'bilge') currentTankGroup = 'residue';
+        else currentTankGroup = type;
+        document.querySelectorAll('[data-tankgroup]').forEach(b => {
+            if(b.dataset.tankgroup === currentTankGroup) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+
+        renderTankCards();
         renderOrbFields();
+    };
+
+    document.getElementById('planDensity').oninput = renderTankCards;
+
+    document.querySelectorAll('[data-tankgroup]').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('[data-tankgroup]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentTankGroup = btn.dataset.tankgroup;
+            renderTankCards();
+        };
     };
 
     // === CHANGEOVER GENERATOR ===
@@ -1812,9 +1949,9 @@
     };
 
     // === SUB-TABS BINDING (Spares) ===
-    document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+    document.querySelectorAll('.sub-tab-btn[data-sub]').forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.sub-tab-btn[data-sub]').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.sub-content').forEach(c => c.style.display = 'none');
             btn.classList.add('active');
             document.getElementById('sub-' + btn.dataset.sub).style.display = 'block';
@@ -2605,7 +2742,7 @@
     };
 
     // === INIT ===
-    renderTankList();
+    renderTankCards();
     renderOrbFields();
     renderOrbHistory();
     renderDelivery();

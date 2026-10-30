@@ -1268,20 +1268,50 @@
             box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No entries yet.</div>';
             return;
         }
+        
         box.innerHTML = orbHistory.slice().reverse().map((h, idx) => {
             const realIdx = orbHistory.length - 1 - idx;
             return `
-                <div class="tank-list-item" style="align-items:flex-start; flex-direction:column; gap:6px;">
-                    <div style="display:flex; justify-content:space-between; width:100%; gap:8px;">
+                <div class="tank-list-item" style="align-items:flex-start; flex-direction:column; gap:8px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:8px; border-bottom:1px solid var(--border); padding-bottom:6px;">
                         <div style="font-weight:600; font-size:0.85rem; color:var(--yellow);">${h.code} — ${h.date}</div>
-                        <button class="btn-danger" onclick="deleteOrbHistory(${realIdx})">Del</button>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn" style="margin-top:0; padding:4px 8px; font-size:0.7rem; background:var(--accent); color:#000;" onclick="editOrbHistory(${realIdx})">✏️ Edit</button>
+                            <button class="btn-danger" style="padding:4px 8px; font-size:0.7rem;" onclick="deleteOrbHistory(${realIdx})">Del</button>
+                        </div>
                     </div>
-                    <div style="font-family:monospace; font-size:0.7rem; color:var(--text-muted); white-space:pre-wrap;">${h.text.substring(0, 150)}${h.text.length > 150 ? '...' : ''}</div>
-                    <button class="btn" style="margin-top:0; padding:6px; font-size:0.75rem;" onclick="copyOrbHistory(${realIdx})">📋 Copy</button>
+                    
+                    <div id="hist-container-${realIdx}" style="width:100%;">
+                        <div id="hist-text-${realIdx}" style="font-family:monospace; font-size:0.75rem; color:var(--text); white-space:pre-wrap; background:var(--bg); padding:8px; border-radius:6px; border:1px solid var(--border); line-height:1.5;">${h.text}</div>
+                    </div>
+
+                    <button class="btn" style="margin-top:0; padding:8px; font-size:0.75rem; width:100%; background:var(--green); color:#000;" onclick="copyOrbHistory(${realIdx})">📋 Copy to ORB</button>
                 </div>
             `;
         }).join('');
     }
+
+    window.editOrbHistory = function(i) {
+        const container = document.getElementById('hist-container-' + i);
+        const currentText = orbHistory[i].text;
+        
+        container.innerHTML = `
+            <textarea id="edit-ta-${i}" style="width:100%; min-height:150px; font-family:monospace; font-size:0.75rem; margin-bottom:8px; background:var(--card); border:1px solid var(--yellow); color:var(--text); padding:8px; border-radius:6px;">${currentText}</textarea>
+            <div style="display:flex; gap:8px;">
+                <button class="btn" style="margin-top:0; padding:8px; font-size:0.75rem; background:var(--green); color:#000;" onclick="saveOrbHistoryEdit(${i})">💾 Save</button>
+                <button class="btn" style="margin-top:0; padding:8px; font-size:0.75rem; background:var(--border); color:var(--text);" onclick="renderOrbHistory()">Cancel</button>
+            </div>
+        `;
+    };
+
+    window.saveOrbHistoryEdit = function(i) {
+        const newText = document.getElementById('edit-ta-' + i).value;
+        if(!newText.trim()) { alert('Текст не может быть пустым'); return; }
+        
+        orbHistory[i].text = newText;
+        localStorage.setItem('orb_history', JSON.stringify(orbHistory));
+        renderOrbHistory();
+    };
 
     window.deleteOrbHistory = function(i) {
         if(!confirm('Delete this entry?')) return;

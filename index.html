@@ -1180,7 +1180,7 @@
     document.getElementById('tab-chg').style.display = 'none';
     document.querySelector('.main-tab-btn[data-group="home"]').classList.add('active');
     document.querySelector('.main-tab-btn[data-group="marpol"]').classList.remove('active');
-    renderSmartSummary(); // <--- ЗАПУСКАЕМ ПРИ СТАРТЕ ПРИЛОЖЕНИЯ
+    try { renderSmartSummary(); } catch(e) { console.error("Smart Summary error:", e); }
 
     // === DATE FORMATTER (dd-MMM-yyyy) ===
     function formatDate(dateStr) {
@@ -3246,8 +3246,25 @@
     }
 
     // === INIT ===
-    renderTankCards();
-    renderOrbFields();
+    try { renderTankCards(); } catch(e) { console.error("Error in Tanks:", e); }
+    try { renderOrbFields(); } catch(e) { console.error("Error in ORB:", e); }
+    try { renderOrbHistory(); } catch(e) { console.error(e); }
+    try { renderDelivery(); } catch(e) { console.error(e); }
+    try { renderPunchList(); } catch(e) { console.error(e); }
+    try { renderInventory(); } catch(e) { console.error(e); }
+    try { renderReqAll(); } catch(e) { console.error(e); }
+    try { renderWarranty(); } catch(e) { console.error(e); }
+    try { renderNotes(); } catch(e) { console.error(e); }
+    try { renderBunkerChecklist(); } catch(e) { console.error(e); }
+    try { renderLubeRob(); } catch(e) { console.error(e); }
+    try { renderTasks(); } catch(e) { console.error(e); }
+    try { renderNoChecks(); } catch(e) { console.error(e); }
+    try { renderSeaTrial(); } catch(e) { console.error(e); }
+    try { renderFaults(); } catch(e) { console.error(e); }
+    try { renderEmergency(); } catch(e) { console.error(e); }
+    try { renderEmergencyProcedures(); } catch(e) { console.error(e); }
+    
+    document.getElementById('stDate').value = new Date().toISOString().slice(0, 16);
     renderOrbHistory();
     renderDelivery();
     renderPunchList();

@@ -1180,7 +1180,6 @@
     document.getElementById('tab-chg').style.display = 'none';
     document.querySelector('.main-tab-btn[data-group="home"]').classList.add('active');
     document.querySelector('.main-tab-btn[data-group="marpol"]').classList.remove('active');
-    try { renderSmartSummary(); } catch(e) { console.error("Smart Summary error:", e); }
 
     // === DATE FORMATTER (dd-MMM-yyyy) ===
     function formatDate(dateStr) {
@@ -3265,6 +3264,9 @@
     try { renderEmergencyProcedures(); } catch(e) { console.error(e); }
     
     document.getElementById('stDate').value = new Date().toISOString().slice(0, 16);
+
+    // ЗАПУСКАЕМ УМНЫЙ ДАШБОРД ТОЛЬКО ТЕПЕРЬ, КОГДА ВСЕ ДАННЫЕ ЗАГРУЖЕНЫ
+    try { renderSmartSummary(); } catch(e) { console.error("Smart Summary error:", e); }
     renderOrbHistory();
     renderDelivery();
     renderPunchList();

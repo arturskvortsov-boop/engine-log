@@ -425,6 +425,17 @@
         </div>
     </div>
 
+    <!-- BACKUP & RESTORE -->
+    <div style="margin-top: 30px; margin-bottom: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-left: 4px;">Data Management</div>
+        <div class="row-2">
+            <button class="btn" style="margin-top:0; background:rgba(56,189,248,0.1); color:var(--accent); border:1px solid var(--border);" onclick="exportBackup()">⬇️ Save Backup</button>
+            <button class="btn" style="margin-top:0; background:rgba(212,175,55,0.1); color:var(--yellow); border:1px solid var(--border);" onclick="document.getElementById('restoreFile').click()">⬆️ Restore</button>
+        </div>
+        <input type="file" id="restoreFile" style="display:none;" accept=".json" onchange="importBackup(event)">
+        <div style="font-size:0.65rem; color:var(--text-muted); text-align:center; margin-top:8px;">Сохраняй файл в Telegram или Облако, чтобы не потерять данные.</div>
+    </div>
+
     <div style="text-align: center; margin-top: 10px; padding-bottom: 20px;">
         <div style="font-size:0.65rem; color:var(--text-muted); letter-spacing: 1px;">ENGINELOG PWA v2.0</div>
     </div>
@@ -681,6 +692,43 @@
             </div>
             <button class="btn" id="btnAddLubeRob">+ Add / Update ROB</button>
         </div>
+    </div>
+</div>
+
+<!-- TAB 16: PUMP CALCULATOR -->
+<div id="tab-pump" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Pump Transfer Calculator (Перекачка)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Расчет времени перекачки и проверка заполнения приемного танка.
+        </div>
+        
+        <div class="row-2">
+            <div class="form-group">
+                <label>Volume to transfer (Объем, m³)</label>
+                <input type="number" id="pumpVol" step="0.1" placeholder="e.g. 50">
+            </div>
+            <div class="form-group">
+                <label>Pump Capacity (м³/час)</label>
+                <input type="number" id="pumpRate" step="0.1" placeholder="e.g. 10">
+            </div>
+        </div>
+        
+        <div style="border-top: 1px solid rgba(255,255,255,0.05); margin: 10px 0 16px 0;"></div>
+
+        <div class="row-2">
+            <div class="form-group">
+                <label>Dest. Tank Current Vol (m³)</label>
+                <input type="number" id="pumpCurrVol" step="0.1" placeholder="e.g. 20">
+            </div>
+            <div class="form-group">
+                <label>Dest. Tank Capacity (m³)</label>
+                <input type="number" id="pumpCap" step="0.1" placeholder="e.g. 100">
+            </div>
+        </div>
+
+        <button class="btn" id="btnCalcPump">Calculate</button>
+        <div class="result-box" id="resPump"></div>
     </div>
 </div>
 
@@ -1091,6 +1139,7 @@
         engine: [
             { id: 'fuel', label: '🧮 Fuel' },
             { id: 'lube', label: '🧴 Lube' },
+            { id: 'pump', label: '🚰 Pump' },
             { id: 'nightorder', label: '🌙 Night Order' },
             { id: 'tasks', label: '🛠️ Tasks' }
         ],
@@ -3249,6 +3298,91 @@
         }
         } catch(e) { return; }
     }
+
+    // === BACKUP & RESTORE ===
+    window.exportBackup = function() {
+        let data = {};
+        // Собираем все ключи, связанные с нашим приложением
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('el_') || key === 'vessel_tanks' || key === 'orb_history') {
+                data[key] = localStorage.getItem(key);
+            }
+        }
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `EngineLog_Backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    window.importBackup = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                let count = 0;
+                for (const key in data) {
+                    if (key.startsWith('el_') || key === 'vessel_tanks' || key === 'orb_history') {
+                        localStorage.setItem(key, data[key]);
+                        count++;
+                    }
+                }
+                alert(`Успешно восстановлено ${count} записей. Приложение будет перезагружено.`);
+                location.reload();
+            } catch (err) {
+                alert('Ошибка: Неверный формат файла бэкапа.');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; // Сбрасываем input
+    };
+
+    // === PUMP CALCULATOR ===
+    document.getElementById('btnCalcPump').onclick = () => {
+        const vol = parseFloat(document.getElementById('pumpVol').value);
+        const rate = parseFloat(document.getElementById('pumpRate').value);
+        const currVol = parseFloat(document.getElementById('pumpCurrVol').value);
+        const cap = parseFloat(document.getElementById('pumpCap').value);
+        
+        const res = document.getElementById('resPump');
+        
+        if (isNaN(vol) || isNaN(rate) || isNaN(currVol) || isNaN(cap)) {
+            alert('Заполни все поля'); return;
+        }
+        if (rate <= 0) {
+            alert('Производительность насоса должна быть больше 0'); return;
+        }
+        
+        // Расчет времени
+        const hoursDecimal = vol / rate;
+        const hours = Math.floor(hoursDecimal);
+        const minutes = Math.round((hoursDecimal - hours) * 60);
+        
+        // Проверка перелива
+        const finalVol = currVol + vol;
+        const isOverflow = finalVol > cap;
+        const spaceLeft = cap - currVol;
+        
+        res.style.display = 'block';
+        res.innerText = 
+            `Transfer Time: ${hours} h ${minutes} min\n` +
+            `Total Volume in Tank: ${finalVol.toFixed(1)} m³ / ${cap.toFixed(1)} m³\n\n`;
+            
+        if (isOverflow) {
+            res.style.color = 'var(--red)';
+            res.innerText += `⚠️ WARNING: OVERFLOW BY ${(finalVol - cap).toFixed(1)} m³!\nMax volume to transfer safely: ${spaceLeft.toFixed(1)} m³.`;
+        } else {
+            res.style.color = 'var(--green)';
+            res.innerText += `✅ SAFE. Space remaining in tank: ${(cap - finalVol).toFixed(1)} m³.`;
+        }
+    };
 
     // === INIT ===
     try { renderTankCards(); } catch(e) { console.error("Error in Tanks:", e); }

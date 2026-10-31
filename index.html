@@ -108,15 +108,16 @@
 
     /* ПОЛЯ ВВОДА */
     .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; letter-spacing: 0.5px; }
+    .form-group label { display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
     .form-group input, .form-group select, .form-group textarea { 
-        width: 100%; padding: 12px; 
-        background: rgba(5, 11, 20, 0.6); 
+        width: 100%; padding: 14px 16px; 
+        background: rgba(0, 0, 0, 0.2); 
         border: 1px solid var(--border); 
         color: var(--text); 
-        border-radius: 10px; 
+        border-radius: 12px; 
         font-size: 0.95rem; 
         transition: all 0.3s;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
     }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
         outline: none;
@@ -313,10 +314,13 @@
 
 <!-- TAB 0: HOME (DASHBOARD) -->
 <div id="tab-home" class="tab-content" style="display:block;">
-    <div style="margin-bottom: 24px; text-align: center;">
+    <div style="margin-bottom: 20px; text-align: center;">
         <h2 style="font-size: 1.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 8px; color: var(--text);">Chief Engineer<br>Assistant</h2>
         <div style="font-size: 0.75rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Select a module</div>
     </div>
+
+    <!-- СЮДА БУДУТ ВЫВОДИТЬСЯ ТРЕВОГИ -->
+    <div id="smartSummaryContainer" style="display:none; margin-bottom: 24px;"></div>
 
     <!-- MARPOL -->
     <div style="margin-bottom: 20px;">
@@ -1150,6 +1154,7 @@
                 subTabsContainer.style.display = 'none';
                 document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
                 document.getElementById('tab-home').style.display = 'block';
+                renderSmartSummary(); // <--- ОБНОВЛЯЕМ ДАННЫЕ ПРИ ПЕРЕХОДЕ НА ГЛАВНУЮ
             } else {
                 renderSubTabs(this.dataset.group);
             }
@@ -1175,6 +1180,7 @@
     document.getElementById('tab-chg').style.display = 'none';
     document.querySelector('.main-tab-btn[data-group="home"]').classList.add('active');
     document.querySelector('.main-tab-btn[data-group="marpol"]').classList.remove('active');
+    renderSmartSummary(); // <--- ЗАПУСКАЕМ ПРИ СТАРТЕ ПРИЛОЖЕНИЯ
 
     // === DATE FORMATTER (dd-MMM-yyyy) ===
     function formatDate(dateStr) {
@@ -3158,6 +3164,86 @@
         ['newEmerRole','newEmerName','newEmerPhone'].forEach(id => document.getElementById(id).value = '');
         renderEmergency();
     };
+
+    // === SMART SUMMARY (ATTENTION REQUIRED) ===
+    function renderSmartSummary() {
+        const container = document.getElementById('smartSummaryContainer');
+        if(!container) return;
+        
+        let html = '';
+        let hasAlerts = false;
+
+        // 1. Проверяем Задачи (High Priority или Дедлайн сегодня/завтра)
+        const urgentTasks = taskItems.filter(t => {
+            if(t.status === 'Done') return false;
+            if(t.priority === 'High') return true;
+            if(t.deadline) {
+                const daysLeft = (new Date(t.deadline) - new Date()) / (1000*60*60*24);
+                if(daysLeft <= 2) return true; // Просрочено или осталось 2 дня
+            }
+            return false;
+        });
+        if (urgentTasks.length > 0) {
+            hasAlerts = true;
+            html += `
+                <div class="dash-card" style="border-color: var(--yellow); background: rgba(212,175,55,0.05); margin-bottom: 8px;" onclick="goToTab('engine', 'tasks')">
+                    <div class="dash-icon" style="color: var(--yellow); border-color: rgba(212,175,55,0.3); background: rgba(212,175,55,0.1);">⚠️</div>
+                    <div class="dash-content">
+                        <div class="dash-title" style="color: var(--yellow); font-size: 0.9rem;">${urgentTasks.length} Urgent Task(s)</div>
+                        <div class="dash-subtitle">High priority or deadline is coming.</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 2. Проверяем Гарантию (Истекает менее чем через 30 дней)
+        const expiringWarranty = warrantyItems.filter(w => {
+            if(w.status === 'Resolved' || w.status === 'Rejected') return false;
+            if(w.expiry) {
+                const daysLeft = (new Date(w.expiry) - new Date()) / (1000*60*60*24);
+                if(daysLeft <= 30) return true;
+            }
+            return false;
+        });
+        if (expiringWarranty.length > 0) {
+            hasAlerts = true;
+            html += `
+                <div class="dash-card" style="border-color: var(--red); background: rgba(248,113,113,0.05); margin-bottom: 8px;" onclick="goToTab('newbuild', 'warranty')">
+                    <div class="dash-icon" style="color: var(--red); border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.1);">🛡️</div>
+                    <div class="dash-content">
+                        <div class="dash-title" style="color: var(--red); font-size: 0.9rem;">${expiringWarranty.length} Warranty Expiring</div>
+                        <div class="dash-subtitle">Claim expires within 30 days.</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. Проверяем Танки (Заполнены более чем на 85%)
+        const highTanks = tanks.filter(t => (t.volume / t.capacity) >= 0.85);
+        if (highTanks.length > 0) {
+            hasAlerts = true;
+            html += `
+                <div class="dash-card" style="border-color: var(--red); background: rgba(248,113,113,0.05); margin-bottom: 8px;" onclick="goToTab('marpol', 'tanks')">
+                    <div class="dash-icon" style="color: var(--red); border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.1);">🛢️</div>
+                    <div class="dash-content">
+                        <div class="dash-title" style="color: var(--red); font-size: 0.9rem;">High Tank Level</div>
+                        <div class="dash-subtitle">${highTanks.length} tank(s) are above 85%.</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Отображаем результат
+        if (hasAlerts) {
+            container.innerHTML = `
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 4px;">Attention Required</div>
+                ${html}
+            `;
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+        }
+    }
 
     // === INIT ===
     renderTankCards();

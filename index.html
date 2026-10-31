@@ -1154,7 +1154,7 @@
                 subTabsContainer.style.display = 'none';
                 document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
                 document.getElementById('tab-home').style.display = 'block';
-                renderSmartSummary(); // <--- ОБНОВЛЯЕМ ДАННЫЕ ПРИ ПЕРЕХОДЕ НА ГЛАВНУЮ
+                try { renderSmartSummary(); } catch(e) {} // <--- ЗАЩИТА ОТ ВЫЛЕТА
             } else {
                 renderSubTabs(this.dataset.group);
             }
@@ -3168,9 +3168,14 @@
     function renderSmartSummary() {
         const container = document.getElementById('smartSummaryContainer');
         if(!container) return;
-        
-        let html = '';
-        let hasAlerts = false;
+
+        try {
+            if (typeof taskItems === 'undefined' || typeof warrantyItems === 'undefined' || typeof tanks === 'undefined') {
+                return;
+            }
+            
+            let html = '';
+            let hasAlerts = false;
 
         // 1. Проверяем Задачи (High Priority или Дедлайн сегодня/завтра)
         const urgentTasks = taskItems.filter(t => {
@@ -3242,6 +3247,7 @@
         } else {
             container.style.display = 'none';
         }
+        } catch(e) { return; }
     }
 
     // === INIT ===
@@ -3267,23 +3273,6 @@
 
     // ЗАПУСКАЕМ УМНЫЙ ДАШБОРД ТОЛЬКО ТЕПЕРЬ, КОГДА ВСЕ ДАННЫЕ ЗАГРУЖЕНЫ
     try { renderSmartSummary(); } catch(e) { console.error("Smart Summary error:", e); }
-    renderOrbHistory();
-    renderDelivery();
-    renderPunchList();
-    renderInventory();
-    renderReqAll();
-    renderWarranty();
-    renderNotes();
-    renderBunkerChecklist();
-    renderLubeRob();
-    renderTasks();
-    renderNoChecks();
-    renderSeaTrial();
-    renderFaults();
-    renderEmergency();
-    renderEmergencyProcedures();
-    
-    document.getElementById('stDate').value = new Date().toISOString().slice(0, 16);
 
 // === SERVICE WORKER (OFFLINE PWA) ===
     if ('serviceWorker' in navigator) {

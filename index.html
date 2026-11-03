@@ -314,9 +314,25 @@
 
 <!-- TAB 0: HOME (DASHBOARD) -->
 <div id="tab-home" class="tab-content" style="display:block;">
-    <div style="margin-bottom: 20px; text-align: center;">
+<div style="margin-bottom: 20px; text-align: center;">
         <h2 style="font-size: 1.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 8px; color: var(--text);">Chief Engineer<br>Assistant</h2>
         <div style="font-size: 0.75rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; font-weight: 600;">Select a module</div>
+    </div>
+
+    <!-- ЧАСЫ UTC И СУДОВОЕ ВРЕМЯ -->
+    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <div style="text-align:center; flex:1;">
+            <div style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;">UTC (GMT)</div>
+            <div id="clock-utc" style="font-size:1.6rem; font-weight:800; color:var(--accent); font-family:monospace; line-height:1.1;">00:00:00</div>
+            <div id="date-utc" style="font-size:0.65rem; color:var(--text-muted); margin-top:4px; font-weight:600;">01 JAN 2026</div>
+        </div>
+        <div style="width:1px; height:50px; background:var(--border);"></div>
+        <div style="text-align:center; flex:1; position:relative;">
+            <div style="font-size:0.65rem; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;">Ship Time (LT)</div>
+            <div id="clock-lt" style="font-size:1.6rem; font-weight:800; color:var(--yellow); font-family:monospace; line-height:1.1;">00:00:00</div>
+            <div id="date-lt" style="font-size:0.65rem; color:var(--text-muted); margin-top:4px; font-weight:600;">01 JAN 2026</div>
+            <button onclick="setTimeOffset()" style="position:absolute; top:-5px; right:0; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; padding:4px;">⚙️</button>
+        </div>
     </div>
 
     <!-- СЮДА БУДУТ ВЫВОДИТЬСЯ ТРЕВОГИ -->
@@ -642,6 +658,37 @@
         <button class="btn" id="btnGenNo">Generate Night Order</button>
         <div class="result-box" id="resNo"></div>
         <button class="btn copy-btn" id="btnCopyNo">📋 Copy Text</button>
+    </div>
+</div>
+
+<!-- TAB 17: ENGINE HOURS -->
+<div id="tab-hours" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Engine Hours (Наработка)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Учет наработки. При обновлении сохраняется история для проверок PSC.
+        </div>
+        
+        <div id="hoursList"></div>
+
+        <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+            <h3 style="font-size:0.85rem; color:var(--accent); margin-bottom:10px;">+ Add Equipment</h3>
+            <div class="form-group">
+                <label>Equipment Name (Название)</label>
+                <input type="text" id="newEqName" placeholder="e.g. ME, AE #1, Boiler">
+            </div>
+            <div class="row-2">
+                <div class="form-group">
+                    <label>Initial Hours (Текущая)</label>
+                    <input type="number" id="newEqHours" step="0.1" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Date (Дата)</label>
+                    <input type="date" id="newEqDate">
+                </div>
+            </div>
+            <button class="btn" id="btnAddEq">+ Add Equipment</button>
+        </div>
     </div>
 </div>
 
@@ -1140,6 +1187,7 @@
             { id: 'fuel', label: '🧮 Fuel' },
             { id: 'lube', label: '🧴 Lube' },
             { id: 'pump', label: '🚰 Pump' },
+            { id: 'hours', label: '⏱️ Hours' },
             { id: 'nightorder', label: '🌙 Night Order' },
             { id: 'tasks', label: '🛠️ Tasks' }
         ],
@@ -3384,6 +3432,144 @@
         }
     };
 
+// === CLOCK (UTC & SHIP TIME) ===
+    let timeOffsetHours = parseFloat(localStorage.getItem('el_time_offset')) || 0;
+
+    function updateClocks() {
+        const now = new Date();
+        const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+        const utcHours = String(now.getUTCHours()).padStart(2, '0');
+        const utcMinutes = String(now.getUTCMinutes()).padStart(2, '0');
+        const utcSeconds = String(now.getUTCSeconds()).padStart(2, '0');
+        const utcDateStr = `${String(now.getUTCDate()).padStart(2, '0')} ${months[now.getUTCMonth()]} ${now.getUTCFullYear()}`;
+        
+        if(document.getElementById('clock-utc')) {
+            document.getElementById('clock-utc').innerText = `${utcHours}:${utcMinutes}:${utcSeconds}`;
+            document.getElementById('date-utc').innerText = utcDateStr;
+        }
+
+        const ltTime = new Date(now.getTime() + (timeOffsetHours * 3600000));
+        const ltHours = String(ltTime.getHours()).padStart(2, '0');
+        const ltMinutes = String(ltTime.getMinutes()).padStart(2, '0');
+        const ltSeconds = String(ltTime.getSeconds()).padStart(2, '0');
+        const ltDateStr = `${String(ltTime.getDate()).padStart(2, '0')} ${months[ltTime.getMonth()]} ${ltTime.getFullYear()}`;
+        
+        if(document.getElementById('clock-lt')) {
+            document.getElementById('clock-lt').innerText = `${ltHours}:${ltMinutes}:${ltSeconds}`;
+            document.getElementById('date-lt').innerText = ltDateStr;
+        }
+    }
+
+    window.setTimeOffset = function() {
+        const currentOffset = timeOffsetHours;
+        const input = prompt("Введите разницу с Гринвичем (UTC) в часах.\nНапример: 3, -1, 5.5 или 0", currentOffset);
+        if (input !== null) {
+            const parsed = parseFloat(input.toString().replace(',', '.'));
+            if (!isNaN(parsed)) {
+                timeOffsetHours = parsed;
+                localStorage.setItem('el_time_offset', timeOffsetHours);
+                updateClocks();
+            } else {
+                alert("Ошибка: введите число (например 3 или -1.5)");
+            }
+        }
+    };
+
+    updateClocks();
+    setInterval(updateClocks, 1000);
+
+    // === ENGINE HOURS TRACKER ===
+    let eqHoursItems = JSON.parse(localStorage.getItem('el_engine_hours')) || [];
+
+    function renderHours() {
+        const box = document.getElementById('hoursList');
+        if(!box) return;
+
+        if(eqHoursItems.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No equipment added yet.</div>';
+            return;
+        }
+
+        box.innerHTML = eqHoursItems.map(eq => `
+            <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                    <div>
+                        <div style="font-weight:700; font-size:1.05rem; color:var(--text);">${eq.name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Last update: ${eq.date}</div>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn" style="margin-top:0; padding:6px 10px; font-size:0.75rem; background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3);" onclick="updateHours('${eq.id}')">✏️ Update</button>
+                        <button class="btn-danger" style="padding:6px 10px; font-size:0.75rem; background:rgba(248,113,113,0.1); color:var(--red); border:1px solid rgba(248,113,113,0.2);" onclick="deleteEqHours('${eq.id}')">🗑️</button>
+                    </div>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; margin-bottom:10px;">
+                    <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Current</div>
+                    <div style="font-size:1.2rem; font-weight:800; color:var(--green); font-family:monospace;">${eq.hours.toFixed(1)} <span style="font-size:0.7rem; opacity:0.7;">h</span></div>
+                </div>
+
+                <details style="border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+                    <summary style="font-size:0.75rem; color:var(--accent); cursor:pointer; outline:none;">📜 History</summary>
+                    <div style="margin-top:8px; font-size:0.75rem; color:var(--text-muted); max-height:150px; overflow-y:auto;">
+                        ${eq.history.slice().reverse().map(h => `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${h.date}</span><span>${h.hours.toFixed(1)} h</span></div>`).join('')}
+                    </div>
+                </details>
+            </div>
+        `).join('');
+    }
+
+    window.updateHours = function(id) {
+        const eq = eqHoursItems.find(x => x.id === id);
+        if(!eq) return;
+        
+        const newHoursStr = prompt(`Enter new hours for ${eq.name}:\n(Current: ${eq.hours})`, eq.hours);
+        if(newHoursStr === null) return;
+        
+        const newHours = parseFloat(newHoursStr.toString().replace(',', '.'));
+        if(isNaN(newHours) || newHours < eq.hours) {
+            alert('Некорректное значение (должно быть больше или равно текущему)');
+            return;
+        }
+
+        const today = new Date().toISOString().slice(0, 10);
+        eq.hours = newHours;
+        eq.date = today;
+        if(!eq.history) eq.history = [];
+        eq.history.push({ date: today, hours: newHours });
+
+        localStorage.setItem('el_engine_hours', JSON.stringify(eqHoursItems));
+        renderHours();
+    };
+
+    window.deleteEqHours = function(id) {
+        if(!confirm('Удалить этот механизм?')) return;
+        eqHoursItems = eqHoursItems.filter(x => x.id !== id);
+        localStorage.setItem('el_engine_hours', JSON.stringify(eqHoursItems));
+        renderHours();
+    };
+
+    document.getElementById('btnAddEq').onclick = () => {
+        const name = document.getElementById('newEqName').value.trim();
+        const hours = parseFloat(document.getElementById('newEqHours').value);
+        const date = document.getElementById('newEqDate').value;
+
+        if(!name || isNaN(hours) || !date) { alert('Заполни все поля'); return; }
+
+        eqHoursItems.push({
+            id: 'eq_' + Date.now(),
+            name: name,
+            hours: hours,
+            date: date,
+            history: [{ date: date, hours: hours }]
+        });
+
+        localStorage.setItem('el_engine_hours', JSON.stringify(eqHoursItems));
+        document.getElementById('newEqName').value = '';
+        document.getElementById('newEqHours').value = '0';
+        renderHours();
+    };
+
     // === INIT ===
     try { renderTankCards(); } catch(e) { console.error("Error in Tanks:", e); }
     try { renderOrbFields(); } catch(e) { console.error("Error in ORB:", e); }
@@ -3401,7 +3587,8 @@
     try { renderSeaTrial(); } catch(e) { console.error(e); }
     try { renderFaults(); } catch(e) { console.error(e); }
     try { renderEmergency(); } catch(e) { console.error(e); }
-    try { renderEmergencyProcedures(); } catch(e) { console.error(e); }
+try { renderEmergencyProcedures(); } catch(e) { console.error(e); }
+    try { renderHours(); } catch(e) { console.error(e); }
     
     document.getElementById('stDate').value = new Date().toISOString().slice(0, 16);
 

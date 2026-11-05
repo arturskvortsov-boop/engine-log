@@ -600,19 +600,61 @@
     <div id="fuel-log" class="sub-content" style="display:none;">
         <div class="card">
             <h2>Daily Fuel Log</h2>
-            <div class="form-group">
-                <label>Date (Дата)</label>
-                <input type="date" id="flogDate">
-            </div>
+            
             <div class="row-2">
-                <div class="form-group"><label>M/E Cons (MT)</label><input type="number" id="flogME" step="0.01"></div>
-                <div class="form-group"><label>A/E Cons (MT)</label><input type="number" id="flogAE" step="0.01"></div>
+                <div class="form-group"><label>Date (Дата)</label><input type="date" id="flogDate"></div>
+                <div class="form-group"><label>Bunker Received (MT)</label><input type="number" id="flogBunker" step="0.1" value="0"></div>
             </div>
-            <div class="row-2">
-                <div class="form-group"><label>Boiler Cons (MT)</label><input type="number" id="flogBLR" step="0.01"></div>
-                <div class="form-group"><label>Total ROB (MT)</label><input type="number" id="flogROB" step="0.01"></div>
+            
+            <div style="border-top:1px solid var(--border); margin:15px 0; padding-top:15px;">
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Flow Meters Readings</div>
+                
+                <!-- M/E Block -->
+                <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                    <div style="font-weight:700; color:var(--accent); margin-bottom:8px;">Main Engine (M/E)</div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:8px;"><label>Prev (m³)</label><input type="number" id="flogMEPrev" readonly style="background:transparent; border:none; padding:0; color:var(--text-muted);"></div>
+                        <div class="form-group" style="margin-bottom:8px;"><label>Curr (m³)</label><input type="number" id="flogMECurr" step="0.1" placeholder="0.0"></div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:0;"><label>Temp (°C)</label><input type="number" id="flogMETemp" step="0.1" value="15"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Density (t/m³)</label><input type="number" id="flogMEDens" step="0.001" value="0.95"></div>
+                    </div>
+                </div>
+
+                <!-- D/G Block -->
+                <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                    <div style="font-weight:700; color:var(--yellow); margin-bottom:8px;">Diesel Generators (D/G)</div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:8px;"><label>Prev (m³)</label><input type="number" id="flogDGPrev" readonly style="background:transparent; border:none; padding:0; color:var(--text-muted);"></div>
+                        <div class="form-group" style="margin-bottom:8px;"><label>Curr (m³)</label><input type="number" id="flogDGCurr" step="0.1" placeholder="0.0"></div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:0;"><label>Temp (°C)</label><input type="number" id="flogDGTemp" step="0.1" value="15"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Density (t/m³)</label><input type="number" id="flogDGDens" step="0.001" value="0.85"></div>
+                    </div>
+                </div>
+
+                <!-- Boiler Block -->
+                <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                    <div style="font-weight:700; color:var(--text-muted); margin-bottom:8px;">Boiler (BLR)</div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:8px;"><label>Prev (m³)</label><input type="number" id="flogBLRPrev" readonly style="background:transparent; border:none; padding:0; color:var(--text-muted);"></div>
+                        <div class="form-group" style="margin-bottom:8px;"><label>Curr (m³)</label><input type="number" id="flogBLRCurr" step="0.1" placeholder="0.0"></div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:0;"><label>Temp (°C)</label><input type="number" id="flogBLRTemp" step="0.1" value="15"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Density (t/m³)</label><input type="number" id="flogBLRDens" step="0.001" value="0.95"></div>
+                    </div>
+                </div>
             </div>
-            <button class="btn" id="btnAddFlog">+ Add to Log</button>
+
+            <div class="form-group" style="margin-top:15px;">
+                <label>Total ROB (Текущий остаток, MT)</label>
+                <input type="number" id="flogROB" step="0.1" placeholder="e.g. 800">
+            </div>
+
+            <button class="btn" id="btnAddFlog">+ Calculate & Add Log</button>
             <button class="btn" id="btnExportFlog" style="background:var(--border); color:var(--text); margin-top:8px;">⬇️ Export to CSV</button>
         </div>
 
@@ -734,13 +776,21 @@
             </div>
             <div class="row-2">
                 <div class="form-group">
+                    <label>Group (Группа)</label>
+                    <select id="newEqGroup">
+                        <option value="Group 1">Group 1</option>
+                        <option value="Group 2">Group 2</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Initial Hours (Текущая)</label>
                     <input type="number" id="newEqHours" step="0.1" value="0">
                 </div>
-                <div class="form-group">
-                    <label>Date (Дата)</label>
-                    <input type="date" id="newEqDate">
-                </div>
+            </div>
+            <div class="form-group">
+                <label>Date (Дата)</label>
+                <input type="date" id="newEqDate">
             </div>
             <button class="btn" id="btnAddEq">+ Add Equipment</button>
         </div>
@@ -3546,47 +3596,58 @@
             return;
         }
 
-        box.innerHTML = eqHoursItems.map(eq => {
-            // Расчет разницы (дельты)
-            let deltaHTML = '';
-            if (eq.history && eq.history.length >= 2) {
-                const lastIdx = eq.history.length - 1;
-                const delta = eq.history[lastIdx].hours - eq.history[lastIdx - 1].hours;
-                if (delta > 0) {
-                    deltaHTML = `<span style="color:var(--green); font-size:0.8rem; font-weight:700; margin-left:8px; background:rgba(74,222,128,0.1); padding:2px 6px; border-radius:4px;">+${delta.toFixed(1)} h</span>`;
-                } else {
-                    deltaHTML = `<span style="color:var(--text-muted); font-size:0.8rem; font-weight:700; margin-left:8px; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">+0 h</span>`;
-                }
-            }
+        // Группируем данные
+        const groups = {};
+        eqHoursItems.forEach(eq => {
+            const g = eq.group || 'Other';
+            if(!groups[g]) groups[g] = [];
+            groups[g].push(eq);
+        });
 
-            return `
-            <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-                    <div>
-                        <div style="font-weight:700; font-size:1.05rem; color:var(--text); display:flex; align-items:center;">
-                            ${eq.name} ${deltaHTML}
+        // Рендерим группы
+        let html = '';
+        for (const [groupName, items] of Object.entries(groups)) {
+            html += `
+            <details open style="margin-bottom: 20px;">
+                <summary style="font-size: 0.9rem; color: var(--accent); font-weight: 700; padding: 8px; background: rgba(56,189,248,0.1); border-radius: 8px; border: 1px solid rgba(56,189,248,0.2); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📁 ${groupName}</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">${items.length} units</span>
+                </summary>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 10px;">
+                    ${items.map(eq => {
+                        let deltaHTML = '';
+                        if (eq.history && eq.history.length >= 2) {
+                            const lastIdx = eq.history.length - 1;
+                            const delta = eq.history[lastIdx].hours - eq.history[lastIdx - 1].hours;
+                            if (delta > 0) {
+                                deltaHTML = `<span style="color:var(--green); font-size:0.75rem; font-weight:700; background:rgba(74,222,128,0.1); padding:2px 4px; border-radius:4px;">+${delta.toFixed(1)}h</span>`;
+                            } else {
+                                deltaHTML = `<span style="color:var(--text-muted); font-size:0.75rem; font-weight:700; background:rgba(255,255,255,0.05); padding:2px 4px; border-radius:4px;">+0h</span>`;
+                            }
+                        }
+
+                        return `
+                        <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:10px; padding:12px; display:flex; flex-direction:column; justify-content:space-between; position:relative;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                <div style="font-weight:700; font-size:0.85rem; color:var(--text); word-break:break-word; padding-right:15px;">${eq.name}</div>
+                                <button class="btn-danger" style="position:absolute; top:8px; right:8px; padding:2px 5px; font-size:0.6rem; border-radius:4px;" onclick="deleteEqHours('${eq.id}')">✕</button>
+                            </div>
+                            <div style="font-size:1.3rem; font-weight:800; color:var(--text); font-family:monospace; text-align:center; margin-bottom:8px;">
+                                ${eq.hours.toFixed(1)}
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                ${deltaHTML || '<span></span>'}
+                                <button class="btn" style="margin:0; padding:4px 8px; font-size:0.7rem; width:auto; background:rgba(56,189,248,0.2); color:var(--accent); border:none;" onclick="updateHours('${eq.id}')">Update</button>
+                            </div>
                         </div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Last update: ${eq.date}</div>
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn" style="margin-top:0; padding:6px 10px; font-size:0.75rem; background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3);" onclick="updateHours('${eq.id}')">✏️ Update</button>
-                        <button class="btn-danger" style="padding:6px 10px; font-size:0.75rem; background:rgba(248,113,113,0.1); color:var(--red); border:1px solid rgba(248,113,113,0.2);" onclick="deleteEqHours('${eq.id}')">🗑️</button>
-                    </div>
+                        `;
+                    }).join('')}
                 </div>
-                
-                <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; margin-bottom:10px;">
-                    <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Current</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:var(--green); font-family:monospace;">${eq.hours.toFixed(1)} <span style="font-size:0.7rem; opacity:0.7;">h</span></div>
-                </div>
-
-                <details style="border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
-                    <summary style="font-size:0.75rem; color:var(--accent); cursor:pointer; outline:none;">📜 History</summary>
-                    <div style="margin-top:8px; font-size:0.75rem; color:var(--text-muted); max-height:150px; overflow-y:auto;">
-                        ${eq.history.slice().reverse().map(h => `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${h.date}</span><span>${h.hours.toFixed(1)} h</span></div>`).join('')}
-                    </div>
-                </details>
-            </div>
-        `}).join('');
+            </details>
+            `;
+        }
+        
+        box.innerHTML = html;
     }
 
     window.updateHours = function(id) {
@@ -3626,9 +3687,11 @@
 
         if(!name || isNaN(hours) || !date) { alert('Заполни все поля'); return; }
 
+        const group = document.getElementById('newEqGroup').value;
         eqHoursItems.push({
             id: 'eq_' + Date.now(),
             name: name,
+            group: group,
             hours: hours,
             date: date,
             history: [{ date: date, hours: hours }]
@@ -3658,6 +3721,135 @@
 
     // === DAILY FUEL LOG ===
     let fuelLogItems = JSON.parse(localStorage.getItem('el_fuel_log')) || [];
+
+    function renderFuelLog() {
+        const box = document.getElementById('flogList');
+        if(!box) return;
+        
+        // Автозаполнение предыдущих показаний (берем последнюю запись)
+        if (fuelLogItems.length > 0) {
+            const last = fuelLogItems[fuelLogItems.length - 1];
+            document.getElementById('flogMEPrev').value = last.meCurr || 0;
+            document.getElementById('flogDGPrev').value = last.dgCurr || 0;
+            document.getElementById('flogBLRPrev').value = last.blrCurr || 0;
+            document.getElementById('flogROB').placeholder = `Prev ROB: ${last.rob}`;
+        }
+
+        if(fuelLogItems.length === 0) {
+            box.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">No records.</div>';
+            return;
+        }
+
+        box.innerHTML = fuelLogItems.slice().reverse().map((item, idx) => {
+            const realIdx = fuelLogItems.length - 1 - idx;
+            return `
+            <div class="tank-list-item" style="flex-direction:column; align-items:stretch; gap:4px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <div style="font-weight:600; font-size:0.85rem; color:var(--accent);">${item.date}</div>
+                    <button class="btn-danger" onclick="deleteFuelLog(${realIdx})" style="padding:2px 6px; font-size:0.7rem;">Del</button>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+                    ME: <b style="color:var(--text)">${item.meMT.toFixed(2)} MT</b> | 
+                    DG: <b style="color:var(--text)">${item.dgMT.toFixed(2)} MT</b> | 
+                    BLR: <b style="color:var(--text)">${item.blrMT.toFixed(2)} MT</b>
+                </div>
+                <div style="font-size:0.85rem; font-weight:700; color:var(--green); margin-top:4px;">
+                    Total ROB: ${item.rob} MT
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    window.deleteFuelLog = function(idx) {
+        if(!confirm('Delete this record?')) return;
+        fuelLogItems.splice(idx, 1);
+        localStorage.setItem('el_fuel_log', JSON.stringify(fuelLogItems));
+        renderFuelLog();
+    };
+
+    document.getElementById('btnAddFlog').onclick = () => {
+        const date = document.getElementById('flogDate').value;
+        if(!date) { alert('Enter Date'); return; }
+
+        // Сбор данных
+        const bunker = parseFloat(document.getElementById('flogBunker').value) || 0;
+        const robStr = document.getElementById('flogROB').value;
+        
+        // M/E
+        const mePrev = parseFloat(document.getElementById('flogMEPrev').value) || 0;
+        const meCurr = parseFloat(document.getElementById('flogMECurr').value) || 0;
+        const meTemp = parseFloat(document.getElementById('flogMETemp').value) || 15;
+        const meDens = parseFloat(document.getElementById('flogMEDens').value) || 0.95;
+        
+        // D/G
+        const dgPrev = parseFloat(document.getElementById('flogDGPrev').value) || 0;
+        const dgCurr = parseFloat(document.getElementById('flogDGCurr').value) || 0;
+        const dgTemp = parseFloat(document.getElementById('flogDGTemp').value) || 15;
+        const dgDens = parseFloat(document.getElementById('flogDGDens').value) || 0.85;
+        
+        // Boiler
+        const blrPrev = parseFloat(document.getElementById('flogBLRPrev').value) || 0;
+        const blrCurr = parseFloat(document.getElementById('flogBLRCurr').value) || 0;
+        const blrTemp = parseFloat(document.getElementById('flogBLRTemp').value) || 15;
+        const blrDens = parseFloat(document.getElementById('flogBLRDens').value) || 0.95;
+
+        // Расчет VCF и MT (упрощенная формула как в Excel)
+        const meVcf = getVcf(meDens) || 0.00065;
+        const dgVcf = getVcf(dgDens) || 0.00065;
+        const blrVcf = getVcf(blrDens) || 0.00065;
+
+        const meVolUsed = meCurr - mePrev;
+        const dgVolUsed = dgCurr - dgPrev;
+        const blrVolUsed = blrCurr - blrPrev;
+
+        const meMT = (meVolUsed - meVcf * (meTemp - 15) * (meCurr - mePrev)) * meDens;
+        // Для простоты считаем разницу объемов, умножаем на плотность. 
+        // Строго по ASTM: (Curr - VCF*(T-15)) - (Prev - VCF*(T_prev-15)). Берем упрощенно.
+        const meFinalMT = meVolUsed * meDens - meVcf * (meTemp - 15) * meVolUsed * meDens; 
+        const dgFinalMT = dgVolUsed * dgDens - dgVcf * (dgTemp - 15) * dgVolUsed * dgDens;
+        const blrFinalMT = blrVolUsed * blrDens - blrVcf * (blrTemp - 15) * blrVolUsed * blrDens;
+
+        // ROB
+        let newRob = parseFloat(robStr);
+        if(isNaN(newRob)) {
+            const prevItem = fuelLogItems.length > 0 ? fuelLogItems[fuelLogItems.length - 1] : null;
+            const prevRob = prevItem ? prevItem.rob : 0;
+            newRob = prevRob - (meFinalMT + dgFinalMT + blrFinalMT) + bunker;
+        }
+
+        fuelLogItems.push({ 
+            date, bunker, rob: newRob,
+            mePrev, meCurr, meTemp, meDens, meMT: meFinalMT,
+            dgPrev, dgCurr, dgTemp, dgDens, dgMT: dgFinalMT,
+            blrPrev, blrCurr, blrTemp, blrDens, blrMT: blrFinalMT
+        });
+        
+        localStorage.setItem('el_fuel_log', JSON.stringify(fuelLogItems));
+        
+        // Очистка текущих значений (прошлые подтянутся сами при рендере)
+        document.getElementById('flogMECurr').value = '';
+        document.getElementById('flogDGCurr').value = '';
+        document.getElementById('flogBLRCurr').value = '';
+        document.getElementById('flogROB').value = '';
+        document.getElementById('flogBunker').value = '0';
+        
+        renderFuelLog();
+        alert(`Log saved! Total Cons: ${(meFinalMT+dgFinalMT+blrFinalMT).toFixed(2)} MT. New ROB: ${newRob.toFixed(2)} MT`);
+    };
+
+    document.getElementById('btnExportFlog').onclick = () => {
+        if(fuelLogItems.length === 0) return;
+        let csv = 'Date,ME_Curr,ME_Cons_MT,DG_Curr,DG_Cons_MT,BLR_Curr,BLR_Cons_MT,Bunker_Received,ROB\n';
+        fuelLogItems.forEach(i => {
+            csv += `"${i.date}","${i.meCurr}","${i.meMT.toFixed(2)}","${i.dgCurr}","${i.dgMT.toFixed(2)}","${i.blrCurr}","${i.blrMT.toFixed(2)}","${i.bunker}","${i.rob}"\n`;
+        });
+        const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8;'});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `FuelLog_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    };
 
     function renderFuelLog() {
         const box = document.getElementById('flogList');

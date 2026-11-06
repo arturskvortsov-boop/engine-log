@@ -599,8 +599,22 @@
     <!-- SUB: DAILY LOG -->
     <div id="fuel-log" class="sub-content" style="display:none;">
         <div class="card">
-            <h2>Daily Fuel Log</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(212,175,55,0.2); padding-bottom:10px;">
+                <h2 style="margin-bottom:0; border:none; padding:0;">Daily Fuel Log</h2>
+                <button class="btn" style="margin:0; padding:4px 8px; width:auto; font-size:0.75rem; background:transparent; color:var(--accent); border:1px solid var(--accent);" onclick="document.getElementById('meterSettings').style.display = document.getElementById('meterSettings').style.display === 'none' ? 'block' : 'none';">⚙️ Настроить</button>
+            </div>
             
+            <!-- НАСТРОЙКА СЧЕТЧИКОВ -->
+            <div id="meterSettings" style="display:none; background:rgba(0,0,0,0.3); border:1px solid var(--accent); padding:12px; border-radius:10px; margin-bottom:15px;">
+                <div style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:600;">Выберите счетчики на вашем судне:</div>
+                <label style="display:flex; gap:8px; margin-bottom:6px; font-size:0.85rem; color:var(--text);"><input type="checkbox" id="chk_me" checked> Main Engine (M/E)</label>
+                <label style="display:flex; gap:8px; margin-bottom:6px; font-size:0.85rem; color:var(--text);"><input type="checkbox" id="chk_dgin" checked> D/G IN (Подача)</label>
+                <label style="display:flex; gap:8px; margin-bottom:6px; font-size:0.85rem; color:var(--text);"><input type="checkbox" id="chk_dgout"> D/G OUT (Обратка)</label>
+                <label style="display:flex; gap:8px; margin-bottom:6px; font-size:0.85rem; color:var(--text);"><input type="checkbox" id="chk_blr" checked> Boiler (BLR)</label>
+                <label style="display:flex; gap:8px; margin-bottom:6px; font-size:0.85rem; color:var(--text);"><input type="checkbox" id="chk_common"> Common (Общий счетчик)</label>
+                <button class="btn" style="margin-top:8px; padding:8px; font-size:0.8rem;" onclick="saveMeterSettings()">Сохранить настройки</button>
+            </div>
+
             <div class="row-2">
                 <div class="form-group"><label>Date (Дата)</label><input type="date" id="flogDate"></div>
                 <div class="form-group"><label>Bunker Received (MT)</label><input type="number" id="flogBunker" step="0.1" value="0"></div>
@@ -610,7 +624,7 @@
                 <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Flow Meters Readings</div>
                 
                 <!-- M/E Block -->
-                <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                <div id="block-me" style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
                     <div style="font-weight:700; color:var(--accent); margin-bottom:8px;">Main Engine (M/E)</div>
                     <div class="row-2">
                         <div class="form-group" style="margin-bottom:8px;"><label>Prev (m³)</label><input type="number" id="flogMEPrev" readonly style="background:transparent; border:none; padding:0; color:var(--text-muted);"></div>
@@ -622,9 +636,9 @@
                     </div>
                 </div>
 
-                <!-- D/G Block -->
-                <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
-                    <div style="font-weight:700; color:var(--yellow); margin-bottom:8px;">Diesel Generators (D/G)</div>
+                <!-- D/G IN Block -->
+                <div id="block-dgin" style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                    <div style="font-weight:700; color:var(--yellow); margin-bottom:8px;">Diesel Generators (D/G IN)</div>
                     <div class="row-2">
                         <div class="form-group" style="margin-bottom:8px;"><label>Prev (m³)</label><input type="number" id="flogDGPrev" readonly style="background:transparent; border:none; padding:0; color:var(--text-muted);"></div>
                         <div class="form-group" style="margin-bottom:8px;"><label>Curr (m³)</label><input type="number" id="flogDGCurr" step="0.1" placeholder="0.0"></div>
@@ -635,8 +649,21 @@
                     </div>
                 </div>
 
+                <!-- D/G OUT Block -->
+                <div id="block-dgout" style="display:none; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                    <div style="font-weight:700; color:var(--yellow); margin-bottom:8px;">Diesel Generators (D/G OUT)</div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:8px;"><label>Prev (m³)</label><input type="number" id="flogDGOutPrev" readonly style="background:transparent; border:none; padding:0; color:var(--text-muted);"></div>
+                        <div class="form-group" style="margin-bottom:8px;"><label>Curr (m³)</label><input type="number" id="flogDGOutCurr" step="0.1" placeholder="0.0"></div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:0;"><label>Temp (°C)</label><input type="number" id="flogDGOutTemp" step="0.1" value="15"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Density (t/m³)</label><input type="number" id="flogDGOutDens" step="0.001" value="0.85"></div>
+                    </div>
+                </div>
+
                 <!-- Boiler Block -->
-                <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                <div id="block-blr" style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
                     <div style="font-weight:700; color:var(--text-muted); margin-bottom:8px;">Boiler (BLR)</div>
                     <div class="row-2">
                         <div class="form-group" style="margin-bottom:8px;"><label>Prev (m³)</label><input type="number" id="flogBLRPrev" readonly style="background:transparent; border:none; padding:0; color:var(--text-muted);"></div>
@@ -645,6 +672,19 @@
                     <div class="row-2">
                         <div class="form-group" style="margin-bottom:0;"><label>Temp (°C)</label><input type="number" id="flogBLRTemp" step="0.1" value="15"></div>
                         <div class="form-group" style="margin-bottom:0;"><label>Density (t/m³)</label><input type="number" id="flogBLRDens" step="0.001" value="0.95"></div>
+                    </div>
+                </div>
+
+                <!-- Common Block -->
+                <div id="block-common" style="display:none; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                    <div style="font-weight:700; color:var(--green); margin-bottom:8px;">Common / Total (Общий)</div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:8px;"><label>Prev (m³)</label><input type="number" id="flogCommPrev" readonly style="background:transparent; border:none; padding:0; color:var(--text-muted);"></div>
+                        <div class="form-group" style="margin-bottom:8px;"><label>Curr (m³)</label><input type="number" id="flogCommCurr" step="0.1" placeholder="0.0"></div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group" style="margin-bottom:0;"><label>Temp (°C)</label><input type="number" id="flogCommTemp" step="0.1" value="15"></div>
+                        <div class="form-group" style="margin-bottom:0;"><label>Density (t/m³)</label><input type="number" id="flogCommDens" step="0.001" value="0.95"></div>
                     </div>
                 </div>
             </div>
@@ -3721,6 +3761,39 @@
 
     // === DAILY FUEL LOG ===
     let fuelLogItems = JSON.parse(localStorage.getItem('el_fuel_log')) || [];
+    let meterSettings = JSON.parse(localStorage.getItem('el_meter_settings')) || {
+        me: true, dgin: true, dgout: false, blr: true, common: false
+    };
+
+    function loadMeterSettings() {
+        document.getElementById('chk_me').checked = meterSettings.me;
+        document.getElementById('chk_dgin').checked = meterSettings.dgin;
+        document.getElementById('chk_dgout').checked = meterSettings.dgout;
+        document.getElementById('chk_blr').checked = meterSettings.blr;
+        document.getElementById('chk_common').checked = meterSettings.common;
+        applyMeterVisibility();
+    }
+
+    function applyMeterVisibility() {
+        document.getElementById('block-me').style.display = meterSettings.me ? 'block' : 'none';
+        document.getElementById('block-dgin').style.display = meterSettings.dgin ? 'block' : 'none';
+        document.getElementById('block-dgout').style.display = meterSettings.dgout ? 'block' : 'none';
+        document.getElementById('block-blr').style.display = meterSettings.blr ? 'block' : 'none';
+        document.getElementById('block-common').style.display = meterSettings.common ? 'block' : 'none';
+    }
+
+    window.saveMeterSettings = function() {
+        meterSettings = {
+            me: document.getElementById('chk_me').checked,
+            dgin: document.getElementById('chk_dgin').checked,
+            dgout: document.getElementById('chk_dgout').checked,
+            blr: document.getElementById('chk_blr').checked,
+            common: document.getElementById('chk_common').checked
+        };
+        localStorage.setItem('el_meter_settings', JSON.stringify(meterSettings));
+        applyMeterVisibility();
+        document.getElementById('meterSettings').style.display = 'none';
+    };
 
     function renderFuelLog() {
         const box = document.getElementById('flogList');
@@ -3729,9 +3802,11 @@
         // Автозаполнение предыдущих показаний (берем последнюю запись)
         if (fuelLogItems.length > 0) {
             const last = fuelLogItems[fuelLogItems.length - 1];
-            document.getElementById('flogMEPrev').value = last.meCurr || 0;
-            document.getElementById('flogDGPrev').value = last.dgCurr || 0;
-            document.getElementById('flogBLRPrev').value = last.blrCurr || 0;
+            if(meterSettings.me) document.getElementById('flogMEPrev').value = last.meCurr || 0;
+            if(meterSettings.dgin) document.getElementById('flogDGPrev').value = last.dgCurr || 0;
+            if(meterSettings.dgout) document.getElementById('flogDGOutPrev').value = last.dgOutCurr || 0;
+            if(meterSettings.blr) document.getElementById('flogBLRPrev').value = last.blrCurr || 0;
+            if(meterSettings.common) document.getElementById('flogCommPrev').value = last.commCurr || 0;
             document.getElementById('flogROB').placeholder = `Prev ROB: ${last.rob}`;
         }
 
@@ -3772,70 +3847,74 @@
         const date = document.getElementById('flogDate').value;
         if(!date) { alert('Enter Date'); return; }
 
-        // Сбор данных
         const bunker = parseFloat(document.getElementById('flogBunker').value) || 0;
         const robStr = document.getElementById('flogROB').value;
         
-        // M/E
-        const mePrev = parseFloat(document.getElementById('flogMEPrev').value) || 0;
-        const meCurr = parseFloat(document.getElementById('flogMECurr').value) || 0;
-        const meTemp = parseFloat(document.getElementById('flogMETemp').value) || 15;
-        const meDens = parseFloat(document.getElementById('flogMEDens').value) || 0.95;
+        // Универсальная функция расчета для любого счетчика
+        const calcMT = (currId, prevId, tempId, densId) => {
+            if(!document.getElementById(currId)) return { mt: 0, vol: 0, curr: 0, prev: 0 };
+            const curr = parseFloat(document.getElementById(currId).value) || 0;
+            const prev = parseFloat(document.getElementById(prevId).value) || 0;
+            const temp = parseFloat(document.getElementById(tempId).value) || 15;
+            const dens = parseFloat(document.getElementById(densId).value) || 0.95;
+            
+            if(curr === 0) return { mt: 0, vol: 0, curr: prev, prev }; // Если не ввели, считаем что расхода нет
+            
+            const vol = curr - prev;
+            const vcf = typeof getVcf === 'function' ? (getVcf(dens) || 0.00065) : 0.00065;
+            const mt = vol * dens - vcf * (temp - 15) * vol * dens;
+            return { mt, vol, curr, prev };
+        };
+
+        // Считаем по каждому счетчику (если он включен в настройках)
+        const me = meterSettings.me ? calcMT('flogMECurr', 'flogMEPrev', 'flogMETemp', 'flogMEDens') : { mt: 0, vol: 0, curr: 0, prev: 0 };
+        const dgIn = meterSettings.dgin ? calcMT('flogDGCurr', 'flogDGPrev', 'flogDGTemp', 'flogDGDens') : { mt: 0, vol: 0, curr: 0, prev: 0 };
+        const dgOut = meterSettings.dgout ? calcMT('flogDGOutCurr', 'flogDGOutPrev', 'flogDGOutTemp', 'flogDGOutDens') : { mt: 0, vol: 0, curr: 0, prev: 0 };
+        const blr = meterSettings.blr ? calcMT('flogBLRCurr', 'flogBLRPrev', 'flogBLRTemp', 'flogBLRDens') : { mt: 0, vol: 0, curr: 0, prev: 0 };
+        const comm = meterSettings.common ? calcMT('flogCommCurr', 'flogCommPrev', 'flogCommTemp', 'flogCommDens') : { mt: 0, vol: 0, curr: 0, prev: 0 };
+
+        // Логика расчета (как в Excel)
+        let dgTotalMT = dgIn.mt - dgOut.mt;
+        if (dgTotalMT < 0) dgTotalMT = 0;
+
+        let meFinalMT = me.mt;
         
-        // D/G
-        const dgPrev = parseFloat(document.getElementById('flogDGPrev').value) || 0;
-        const dgCurr = parseFloat(document.getElementById('flogDGCurr').value) || 0;
-        const dgTemp = parseFloat(document.getElementById('flogDGTemp').value) || 15;
-        const dgDens = parseFloat(document.getElementById('flogDGDens').value) || 0.85;
-        
-        // Boiler
-        const blrPrev = parseFloat(document.getElementById('flogBLRPrev').value) || 0;
-        const blrCurr = parseFloat(document.getElementById('flogBLRCurr').value) || 0;
-        const blrTemp = parseFloat(document.getElementById('flogBLRTemp').value) || 15;
-        const blrDens = parseFloat(document.getElementById('flogBLRDens').value) || 0.95;
+        // Если нет счетчика ME, но есть Common, то ME = Common - DG - Boiler
+        if (!meterSettings.me && meterSettings.common) {
+            meFinalMT = comm.mt - dgTotalMT - blr.mt;
+        }
 
-        // Расчет VCF и MT (упрощенная формула как в Excel)
-        const meVcf = getVcf(meDens) || 0.00065;
-        const dgVcf = getVcf(dgDens) || 0.00065;
-        const blrVcf = getVcf(blrDens) || 0.00065;
-
-        const meVolUsed = meCurr - mePrev;
-        const dgVolUsed = dgCurr - dgPrev;
-        const blrVolUsed = blrCurr - blrPrev;
-
-        const meMT = (meVolUsed - meVcf * (meTemp - 15) * (meCurr - mePrev)) * meDens;
-        // Для простоты считаем разницу объемов, умножаем на плотность. 
-        // Строго по ASTM: (Curr - VCF*(T-15)) - (Prev - VCF*(T_prev-15)). Берем упрощенно.
-        const meFinalMT = meVolUsed * meDens - meVcf * (meTemp - 15) * meVolUsed * meDens; 
-        const dgFinalMT = dgVolUsed * dgDens - dgVcf * (dgTemp - 15) * dgVolUsed * dgDens;
-        const blrFinalMT = blrVolUsed * blrDens - blrVcf * (blrTemp - 15) * blrVolUsed * blrDens;
-
-        // ROB
+        // ROB (если не введен вручную, считаем автоматически)
         let newRob = parseFloat(robStr);
         if(isNaN(newRob)) {
             const prevItem = fuelLogItems.length > 0 ? fuelLogItems[fuelLogItems.length - 1] : null;
             const prevRob = prevItem ? prevItem.rob : 0;
-            newRob = prevRob - (meFinalMT + dgFinalMT + blrFinalMT) + bunker;
+            newRob = prevRob - (meFinalMT + dgTotalMT + blr.mt) + bunker;
         }
 
+        // Сохраняем запись
         fuelLogItems.push({ 
             date, bunker, rob: newRob,
-            mePrev, meCurr, meTemp, meDens, meMT: meFinalMT,
-            dgPrev, dgCurr, dgTemp, dgDens, dgMT: dgFinalMT,
-            blrPrev, blrCurr, blrTemp, blrDens, blrMT: blrFinalMT
+            mePrev: me.prev, meCurr: me.curr, meMT: meFinalMT,
+            dgPrev: dgIn.prev, dgCurr: dgIn.curr, dgMT: dgTotalMT,
+            dgOutCurr: dgOut.curr,
+            blrPrev: blr.prev, blrCurr: blr.curr, blrMT: blr.mt,
+            commCurr: comm.curr
         });
         
         localStorage.setItem('el_fuel_log', JSON.stringify(fuelLogItems));
         
-        // Очистка текущих значений (прошлые подтянутся сами при рендере)
-        document.getElementById('flogMECurr').value = '';
-        document.getElementById('flogDGCurr').value = '';
-        document.getElementById('flogBLRCurr').value = '';
+        // Очистка текущих значений
+        if(meterSettings.me) document.getElementById('flogMECurr').value = '';
+        if(meterSettings.dgin) document.getElementById('flogDGCurr').value = '';
+        if(meterSettings.dgout) document.getElementById('flogDGOutCurr').value = '';
+        if(meterSettings.blr) document.getElementById('flogBLRCurr').value = '';
+        if(meterSettings.common) document.getElementById('flogCommCurr').value = '';
         document.getElementById('flogROB').value = '';
         document.getElementById('flogBunker').value = '0';
         
         renderFuelLog();
-        alert(`Log saved! Total Cons: ${(meFinalMT+dgFinalMT+blrFinalMT).toFixed(2)} MT. New ROB: ${newRob.toFixed(2)} MT`);
+        alert(`Log saved!\nME: ${meFinalMT.toFixed(2)} MT\nDG Total: ${dgTotalMT.toFixed(2)} MT\nBLR: ${blr.mt.toFixed(2)} MT\nNew ROB: ${newRob.toFixed(2)} MT`);
     };
 
     document.getElementById('btnExportFlog').onclick = () => {
@@ -3967,6 +4046,7 @@
     try { renderEmergency(); } catch(e) { console.error(e); }
     try { renderEmergencyProcedures(); } catch(e) { console.error(e); }
     try { renderHours(); } catch(e) { console.error(e); }
+    try { loadMeterSettings(); } catch(e) { console.error(e); }
     try { renderFuelLog(); } catch(e) { console.error(e); }
     
     document.getElementById('stDate').value = new Date().toISOString().slice(0, 16);

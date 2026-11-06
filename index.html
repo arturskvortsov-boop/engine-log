@@ -606,24 +606,20 @@
             
             <!-- НАСТРОЙКА СЧЕТЧИКОВ -->
             <div id="meterSettings" style="display:none; background:rgba(0,0,0,0.3); border:1px solid var(--accent); padding:12px; border-radius:10px; margin-bottom:15px;">
-                <div style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:600;">1. Тип расходомеров:</div>
-                <div style="display:flex; gap:15px; margin-bottom:12px;">
-                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text); cursor:pointer;">
-                        <input type="radio" name="meter_type" id="mtype_vol" value="vol"> Объемные (m³)
-                    </label>
-                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text); cursor:pointer;">
-                        <input type="radio" name="meter_type" id="mtype_mass" value="mass"> Массовые (MT)
-                    </label>
+                <div class="form-group" style="margin-bottom:10px;">
+                    <label style="color:var(--accent); font-size:0.75rem; font-weight:600; margin-bottom:4px;">1. Тип расходомеров</label>
+                    <select id="mtype_select">
+                        <option value="vol">Объемные (m³)</option>
+                        <option value="mass">Массовые (MT)</option>
+                    </select>
                 </div>
 
-                <div style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:600;">2. Как считается ГД:</div>
-                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
-                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text); cursor:pointer;">
-                        <input type="radio" name="calc_scheme" id="scheme_direct" value="direct"> Прямой счетчик на ГД
-                    </label>
-                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text); cursor:pointer;">
-                        <input type="radio" name="calc_scheme" id="scheme_common" value="common"> Общий счетчик (ГД = Общий - ДГ - Котел)
-                    </label>
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="color:var(--accent); font-size:0.75rem; font-weight:600; margin-bottom:4px;">2. Как считается ГД</label>
+                    <select id="scheme_select">
+                        <option value="direct">Прямой счетчик на ГД</option>
+                        <option value="common">Общий счетчик (ГД = Общий - ДГ - Котел)</option>
+                    </select>
                 </div>
 
                 <div style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:600;">3. Наличие счетчиков:</div>
@@ -3793,8 +3789,8 @@
         document.getElementById('chk_blr').checked = meterSettings.blr;
         document.getElementById('chk_common').checked = meterSettings.common;
         
-        document.getElementById(meterSettings.type === 'mass' ? 'mtype_mass' : 'mtype_vol').checked = true;
-        document.getElementById(meterSettings.scheme === 'common' ? 'scheme_common' : 'scheme_direct').checked = true;
+        document.getElementById('mtype_select').value = meterSettings.type;
+        document.getElementById('scheme_select').value = meterSettings.scheme;
 
         applyMeterVisibility();
     }
@@ -3831,8 +3827,8 @@
             dgout: document.getElementById('chk_dgout').checked,
             blr: document.getElementById('chk_blr').checked,
             common: document.getElementById('chk_common').checked,
-            type: document.querySelector('input[name="meter_type"]:checked').value,
-            scheme: document.querySelector('input[name="calc_scheme"]:checked').value
+            type: document.getElementById('mtype_select').value,
+            scheme: document.getElementById('scheme_select').value
         };
         localStorage.setItem('el_meter_settings', JSON.stringify(meterSettings));
         applyMeterVisibility();

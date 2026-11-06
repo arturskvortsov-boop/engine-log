@@ -615,10 +615,11 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom:15px;">
-                    <label style="color:var(--accent); font-size:0.75rem; font-weight:600; margin-bottom:4px;">2. Как считается ГД</label>
+                    <label style="color:var(--accent); font-size:0.75rem; font-weight:600; margin-bottom:4px;">2. Схема счетчиков</label>
                     <select id="scheme_select">
-                        <option value="direct">Прямой счетчик на ГД</option>
-                        <option value="common">Общий счетчик (ГД = Общий - ДГ - Котел)</option>
+                        <option value="direct">Прямая (ME, DG, BLR отдельно)</option>
+                        <option value="common_all">Общий на всё (ГД = Общий - ДГ - Котел)</option>
+                        <option value="common_me_dg">Общий на ГД+ДГ (ГД = Общий - ДГ, Котел отдельно)</option>
                     </select>
                 </div>
 
@@ -3790,20 +3791,31 @@
         document.getElementById('chk_common').checked = meterSettings.common;
         
         document.getElementById('mtype_select').value = meterSettings.type;
-        document.getElementById('scheme_select').value = meterSettings.scheme;
+        
+        // Миграция старых схем
+        let savedScheme = meterSettings.scheme || 'direct';
+        if (savedScheme === 'common') savedScheme = 'common_all'; // Старая схема
+        if (!['direct', 'common_all', 'common_me_dg'].includes(savedScheme)) savedScheme = 'direct';
+        
+        meterSettings.scheme = savedScheme;
+        document.getElementById('scheme_select').value = savedScheme;
 
         applyMeterVisibility();
     }
 
     function applyMeterVisibility() {
         const isMass = meterSettings.type === 'mass';
+        const scheme = meterSettings.scheme || 'direct';
+        const useCommon = (scheme === 'common_all' || scheme === 'common_me_dg');
         
         // Скрываем/Показываем блоки
-        document.getElementById('block-me').style.display = meterSettings.me ? 'block' : 'none';
+        // Если используем общий счетчик, блок ME скрываем (расход ГД будет рассчитан)
+        document.getElementById('block-me').style.display = (meterSettings.me && !useCommon) ? 'block' : 'none';
         document.getElementById('block-dgin').style.display = meterSettings.dgin ? 'block' : 'none';
         document.getElementById('block-dgout').style.display = meterSettings.dgout ? 'block' : 'none';
         document.getElementById('block-blr').style.display = meterSettings.blr ? 'block' : 'none';
-        document.getElementById('block-common').style.display = meterSettings.common ? 'block' : 'none';
+        // Блок Common показываем только если выбрана одна из схем с общим счетчиком
+        document.getElementById('block-common').style.display = (meterSettings.common && useCommon) ? 'block' : 'none';
 
         // Если массовый расходомер, скрываем поля Температуры и Плотности
         const hideTempsDens = () => {
@@ -3925,12 +3937,21 @@
         if (dgTotalMT < 0) dgTotalMT = 0;
 
         let meFinalMT = me.mt;
+        const scheme = meterSettings.scheme || 'direct';
         
-        // ЛОГИКА ОБЩЕГО СЧЕТЧИКА (если выбран режим "Common")
-        if (meterSettings.scheme === 'common' && meterSettings.common) {
-            // ГД = Общий расход - (ДГ Вход - ДГ Выход) - Котел
+        // ЛОГИКА РАСЧЕТА В ЗАВИСИМОСТИ ОТ СХЕМЫ
+        if (scheme === 'common_all' && meterSettings.common) {
+            // Схема 2: Общий на всё. ГД = Common - DG - BLR
             meFinalMT = comm.mt - dgTotalMT - blr.mt;
+        } 
+        else if (scheme === 'common_me_dg' && meterSettings.common) {
+            // Схема 3: Общий на ГД+ДГ. ГД = Common - DG (котел отдельно)
+            meFinalMT = comm.mt - dgTotalMT;
         }
+        // Схема 1 (direct): meFinalMT остается = me.mt (прямой счетчик)
+        
+        // Защита от отрицательного расхода (если ввели данные с ошибкой)
+        if (meFinalMT < 0) meFinalMT = 0;
 
         // ROB (если не введен вручную, считаем автоматически)
         let newRob = parseFloat(robStr);

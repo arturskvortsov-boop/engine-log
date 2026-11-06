@@ -606,7 +606,27 @@
             
             <!-- НАСТРОЙКА СЧЕТЧИКОВ -->
             <div id="meterSettings" style="display:none; background:rgba(0,0,0,0.3); border:1px solid var(--accent); padding:12px; border-radius:10px; margin-bottom:15px;">
-                <div style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:600;">Выберите счетчики на вашем судне:</div>
+                <div style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:600;">1. Тип расходомеров:</div>
+                <div style="display:flex; gap:15px; margin-bottom:12px;">
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text); cursor:pointer;">
+                        <input type="radio" name="meter_type" id="mtype_vol" value="vol"> Объемные (m³)
+                    </label>
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text); cursor:pointer;">
+                        <input type="radio" name="meter_type" id="mtype_mass" value="mass"> Массовые (MT)
+                    </label>
+                </div>
+
+                <div style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:600;">2. Как считается ГД:</div>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text); cursor:pointer;">
+                        <input type="radio" name="calc_scheme" id="scheme_direct" value="direct"> Прямой счетчик на ГД
+                    </label>
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text); cursor:pointer;">
+                        <input type="radio" name="calc_scheme" id="scheme_common" value="common"> Общий счетчик (ГД = Общий - ДГ - Котел)
+                    </label>
+                </div>
+
+                <div style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:600;">3. Наличие счетчиков:</div>
                 <label style="display:flex; gap:8px; margin-bottom:6px; font-size:0.85rem; color:var(--text);"><input type="checkbox" id="chk_me" checked> Main Engine (M/E)</label>
                 <label style="display:flex; gap:8px; margin-bottom:6px; font-size:0.85rem; color:var(--text);"><input type="checkbox" id="chk_dgin" checked> D/G IN (Подача)</label>
                 <label style="display:flex; gap:8px; margin-bottom:6px; font-size:0.85rem; color:var(--text);"><input type="checkbox" id="chk_dgout"> D/G OUT (Обратка)</label>
@@ -3762,7 +3782,8 @@
     // === DAILY FUEL LOG ===
     let fuelLogItems = JSON.parse(localStorage.getItem('el_fuel_log')) || [];
     let meterSettings = JSON.parse(localStorage.getItem('el_meter_settings')) || {
-        me: true, dgin: true, dgout: false, blr: true, common: false
+        me: true, dgin: true, dgout: false, blr: true, common: false,
+        type: 'vol', scheme: 'direct'
     };
 
     function loadMeterSettings() {
@@ -3771,15 +3792,36 @@
         document.getElementById('chk_dgout').checked = meterSettings.dgout;
         document.getElementById('chk_blr').checked = meterSettings.blr;
         document.getElementById('chk_common').checked = meterSettings.common;
+        
+        document.getElementById(meterSettings.type === 'mass' ? 'mtype_mass' : 'mtype_vol').checked = true;
+        document.getElementById(meterSettings.scheme === 'common' ? 'scheme_common' : 'scheme_direct').checked = true;
+
         applyMeterVisibility();
     }
 
     function applyMeterVisibility() {
+        const isMass = meterSettings.type === 'mass';
+        
+        // Скрываем/Показываем блоки
         document.getElementById('block-me').style.display = meterSettings.me ? 'block' : 'none';
         document.getElementById('block-dgin').style.display = meterSettings.dgin ? 'block' : 'none';
         document.getElementById('block-dgout').style.display = meterSettings.dgout ? 'block' : 'none';
         document.getElementById('block-blr').style.display = meterSettings.blr ? 'block' : 'none';
         document.getElementById('block-common').style.display = meterSettings.common ? 'block' : 'none';
+
+        // Если массовый расходомер, скрываем поля Температуры и Плотности
+        const hideTempsDens = () => {
+            document.querySelectorAll('[id$="Temp"], [id$="Dens"]').forEach(el => {
+                if(el.id.includes('flog')) el.parentElement.style.display = isMass ? 'none' : 'block';
+            });
+            // Меняем единицы измерения в лейблах (m³ на MT)
+            document.querySelectorAll('label').forEach(el => {
+                if(el.innerText.includes('(m³)') && el.nextElementSibling && el.nextElementSibling.id.includes('flog')) {
+                    el.innerText = isMass ? 'Curr (MT)' : 'Curr (m³)';
+                }
+            });
+        };
+        hideTempsDens();
     }
 
     window.saveMeterSettings = function() {
@@ -3788,7 +3830,9 @@
             dgin: document.getElementById('chk_dgin').checked,
             dgout: document.getElementById('chk_dgout').checked,
             blr: document.getElementById('chk_blr').checked,
-            common: document.getElementById('chk_common').checked
+            common: document.getElementById('chk_common').checked,
+            type: document.querySelector('input[name="meter_type"]:checked').value,
+            scheme: document.querySelector('input[name="calc_scheme"]:checked').value
         };
         localStorage.setItem('el_meter_settings', JSON.stringify(meterSettings));
         applyMeterVisibility();
@@ -3850,20 +3894,27 @@
         const bunker = parseFloat(document.getElementById('flogBunker').value) || 0;
         const robStr = document.getElementById('flogROB').value;
         
-        // Универсальная функция расчета для любого счетчика
+        // Универсальная функция расчета (учитывает Массу или Объем)
         const calcMT = (currId, prevId, tempId, densId) => {
             if(!document.getElementById(currId)) return { mt: 0, vol: 0, curr: 0, prev: 0 };
             const curr = parseFloat(document.getElementById(currId).value) || 0;
             const prev = parseFloat(document.getElementById(prevId).value) || 0;
-            const temp = parseFloat(document.getElementById(tempId).value) || 15;
-            const dens = parseFloat(document.getElementById(densId).value) || 0.95;
             
-            if(curr === 0) return { mt: 0, vol: 0, curr: prev, prev }; // Если не ввели, считаем что расхода нет
+            if(curr === 0) return { mt: 0, vol: 0, curr: prev, prev }; 
             
-            const vol = curr - prev;
-            const vcf = typeof getVcf === 'function' ? (getVcf(dens) || 0.00065) : 0.00065;
-            const mt = vol * dens - vcf * (temp - 15) * vol * dens;
-            return { mt, vol, curr, prev };
+            const delta = curr - prev;
+
+            if (meterSettings.type === 'mass') {
+                // Если массовый расходомер, то Curr - Prev = сразу MT. Плотность не нужна.
+                return { mt: delta, vol: delta, curr, prev };
+            } else {
+                // Если объемный, считаем через VCF
+                const temp = parseFloat(document.getElementById(tempId).value) || 15;
+                const dens = parseFloat(document.getElementById(densId).value) || 0.95;
+                const vcf = typeof getVcf === 'function' ? (getVcf(dens) || 0.00065) : 0.00065;
+                const mt = delta * dens - vcf * (temp - 15) * delta * dens;
+                return { mt, vol: delta, curr, prev };
+            }
         };
 
         // Считаем по каждому счетчику (если он включен в настройках)
@@ -3879,8 +3930,9 @@
 
         let meFinalMT = me.mt;
         
-        // Если нет счетчика ME, но есть Common, то ME = Common - DG - Boiler
-        if (!meterSettings.me && meterSettings.common) {
+        // ЛОГИКА ОБЩЕГО СЧЕТЧИКА (если выбран режим "Common")
+        if (meterSettings.scheme === 'common' && meterSettings.common) {
+            // ГД = Общий расход - (ДГ Вход - ДГ Выход) - Котел
             meFinalMT = comm.mt - dgTotalMT - blr.mt;
         }
 

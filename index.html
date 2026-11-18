@@ -1324,7 +1324,8 @@
         </div>
         <div class="form-group"><label>Title (Заголовок)</label><input type="text" id="noteTitle" placeholder="Short title"></div>
         <div class="form-group"><label>Body (Текст заметки)</label><textarea id="noteBody" placeholder="Например: Спросить у супера, когда придут форсунки. Уточнить по гарантии на насос. ..." style="min-height:100px;"></textarea></div>
-        <button class="btn" id="btnAddNote">+ Add Note (Добавить)</button>
+        <button class="btn" id="btnAddNote" onclick="saveNote()">+ Add Note (Добавить)</button>
+        <button class="btn" id="btnCancelEditNote" style="display:none; background:var(--red); color:#fff; margin-top:8px;" onclick="cancelEditNote()">✖ Отмена редактирования</button>
     </div>
 
     <div class="card">
@@ -1485,6 +1486,7 @@
     // === TANKS MANAGEMENT V3 (DENSITY & TONNAGE) ===
     let tanks = JSON.parse(localStorage.getItem('vessel_tanks')) || [];
     let orbBunkerTanks = []; // Новая переменная для танков в ORB
+    //let editingNoteId = null; // НОВАЯ ПЕРЕМЕННАЯ
     
     
     // Добавляем плотность и температуру для старых танков
@@ -1514,6 +1516,17 @@
 
     let currentTankGroup = 'fuel';
     let currentFuelType = 'hfo'; // НОВАЯ ПЕРЕМЕННАЯ
+
+    window.setFuelType = function(type) {
+        currentFuelType = type;
+        const btnHfo = document.getElementById('btn-hfo');
+        const btnDo = document.getElementById('btn-do');
+        if(btnHfo && btnDo) {
+            btnHfo.classList.toggle('active', type === 'hfo');
+            btnDo.classList.toggle('active', type === 'do');
+        }
+        renderTankCards();
+    };
 
     function renderTankCards() {
         const container = document.getElementById('tankCardsContainer');
@@ -1724,7 +1737,7 @@
         
         const dens = parseFloat(document.getElementById('newTankDensity').value) || 0.95;
         const temp = parseFloat(document.getElementById('newTankTemp').value) || 15;
-        tanks.push({ id: 't_' + Date.now(), name: name, loc: loc, type: type, capacity: cap, volume: 0, density: dens, temp: temp });
+        tanks.push({ id: 't_' + Date.now(), name: name, loc: loc, type: type, capacity: cap, volume: 0, density: dens, temp: temp, fuelType: assignedFuelType });
         localStorage.setItem('vessel_tanks', JSON.stringify(tanks));
         
         document.getElementById('newTankName').value = '';
@@ -4286,6 +4299,356 @@
             }
         }, 50); // Задержка 50 мс
     });
+        // Функция для загрузки заметки в форму редактирования
+    window.editNote = function(id) {
+        const notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+        const note = notes.find(n => n.id === id);
+        if (!note) return;
+
+        // Заполняем форму
+        document.getElementById('noteCategory').value = note.category || 'General';
+        document.getElementById('notePinned').value = note.isPinned ? 'yes' : 'no';
+        document.getElementById('noteTitle').value = note.title || '';
+        document.getElementById('noteBody').value = note.body || '';
+
+        // Меняем режим на редактирование
+        editingNoteId = id;
+        const btn = document.getElementById('btnAddNote');
+        btn.textContent = '💾 Save Changes (Сохранить)';
+        btn.style.background = 'var(--yellow)';
+        btn.style.color = '#000';
+
+        // Скроллим наверх к форме
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+        // === ПОЛНАЯ ЛОГИКА ДЛЯ ЗАМЕТОК (Замена отсутствующего кода) ===
+    let editingNoteId = null;
+
+    window.saveNote = function() {
+        const title = document.getElementById('noteTitle').value;
+        const body = document.getElementById('noteBody').value;
+        const category = document.getElementById('noteCategory').value;
+        const isPinned = document.getElementById('notePinned').value === 'yes';
+
+        if (!title && !body) {
+            alert('Введите заголовок или текст заметки!');
+            return;
+        }
+
+        let notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+
+        if (editingNoteId) {
+            // РЕЖИМ РЕДАКТИРОВАНИЯ
+            const index = notes.findIndex(n => n.id === editingNoteId);
+            if (index !== -1) {
+                notes[index].title = title;
+                notes[index].body = body;
+                notes[index].category = category;
+                notes[index].isPinned = isPinned;
+            }
+            cancelEditNote(); // Сбрасываем форму
+        } else {
+            // РЕЖИМ ДОБАВЛЕНИЯ
+            notes.push({
+                id: Date.now().toString(),
+                title: title,
+                body: body,
+                category: category,
+                isPinned: isPinned,
+                timestamp: Date.now()
+            });
+            // Очищаем форму
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteBody').value = '';
+        }
+
+        localStorage.setItem('vessel_notes', JSON.stringify(notes));
+        renderNotesList(); // Обновляем список на экране
+    };
+
+    window.editNote = function(id) {
+        let notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+        const note = notes.find(n => n.id === id);
+        if (!note) return;
+
+        document.getElementById('noteTitle').value = note.title || '';
+        document.getElementById('noteBody').value = note.body || '';
+        document.getElementById('noteCategory').value = note.category || 'General';
+        document.getElementById('notePinned').value = note.isPinned ? 'yes' : 'no';
+
+        editingNoteId = id;
+        
+        // Меняем кнопку на "Сохранить"
+        const btn = document.getElementById('btnAddNote');
+        btn.textContent = '💾 Save Changes (Сохранить)';
+        btn.style.background = 'var(--yellow)';
+        btn.style.color = '#000';
+        
+        // Показываем кнопку отмены
+        document.getElementById('btnCancelEditNote').style.display = 'block';
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEditNote = function() {
+        editingNoteId = null;
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteBody').value = '';
+        
+        const btn = document.getElementById('btnAddNote');
+        btn.textContent = '+ Add Note (Добавить)';
+        btn.style.background = 'linear-gradient(135deg, #0284C7, #38BDF8)';
+        btn.style.color = '#fff';
+        
+        document.getElementById('btnCancelEditNote').style.display = 'none';
+    };
+
+    window.deleteNote = function(id) {
+        if (!confirm('Удалить эту заметку?')) return;
+        let notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+        notes = notes.filter(n => n.id !== id);
+        localStorage.setItem('vessel_notes', JSON.stringify(notes));
+        renderNotesList();
+    };
+
+    window.renderNotesList = function() {
+        const listContainer = document.getElementById('notesList');
+        if (!listContainer) return;
+
+        let notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+        const filter = document.getElementById('noteFilter').value;
+        const search = document.getElementById('noteSearch').value.toLowerCase();
+
+        // Фильтрация
+        if (filter === 'open') notes = notes.filter(n => !n.isPinned); // Предполагаем, что "open" - это без закрепления
+        else if (filter !== 'all') notes = notes.filter(n => n.category === filter);
+
+        // Поиск
+        if (search) {
+            notes = notes.filter(n => 
+                (n.title && n.title.toLowerCase().includes(search)) || 
+                (n.body && n.body.toLowerCase().includes(search))
+            );
+        }
+
+        // Сортировка (закрепленные сверху)
+        notes.sort((a, b) => {
+            if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+            return b.timestamp - a.timestamp;
+        });
+
+        if (notes.length === 0) {
+            listContainer.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">Нет заметок</div>';
+            return;
+        }
+
+        const icons = { 'Inspector': '🔍', 'Superintendent': '👔', 'PhonePrep': '📞', 'Task': '✅', 'General': '📝' };
+
+        listContainer.innerHTML = notes.map(n => {
+            const dateStr = new Date(n.timestamp).toLocaleDateString();
+            const icon = icons[n.category] || '📝';
+            return `
+                <div style="background:var(--card); border:1px solid ${n.isPinned ? 'var(--accent)' : 'var(--border)'}; border-radius:12px; padding:12px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                        <div style="font-weight:700; color:var(--text); font-size:0.9rem;">
+                            ${icon} ${n.title || '(без названия)'}
+                        </div>
+                        ${n.isPinned ? '<span style="color:var(--accent); font-size:0.8rem;">📌</span>' : ''}
+                    </div>
+                    ${n.body ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; white-space:pre-wrap;">${n.body}</div>` : ''}
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:8px; margin-top:8px;">
+                        <div style="font-size:0.65rem; color:var(--text-muted);">${n.category} • ${dateStr}</div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn" style="margin:0; padding:4px 8px; width:auto; font-size:0.75rem; background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3);" onclick="editNote('${n.id}')">✏️</button>
+                            <button class="btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteNote('${n.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    // Привязка фильтра и поиска к функции отрисовки
+    document.getElementById('noteFilter').addEventListener('change', renderNotesList);
+    document.getElementById('noteSearch').addEventListener('input', renderNotesList);
+
+    // Первичная отрисовка при загрузке
+    setTimeout(renderNotesList, 100);
+        // === ЛОГИКА ТАНКОВ ДЛЯ ORB ===
+    document.getElementById('orbCodeSelect').addEventListener('change', function() {
+        const wrapper = document.getElementById('orbTankDistributionWrapper');
+        if (this.value === 'H_FUEL' || this.value === 'H_LUBE') {
+            wrapper.style.display = 'block';
+            orbBunkerTanks = [];
+            renderOrbTankRows();
+        } else {
+            wrapper.style.display = 'none';
+        }
+    });
+
+    window.addOrbTankRow = function() {
+        orbBunkerTanks.push({ id: Date.now(), name: '', added: '', total: '' });
+        renderOrbTankRows();
+    };
+
+    window.removeOrbTankRow = function(id) {
+        orbBunkerTanks = orbBunkerTanks.filter(t => t.id !== id);
+        renderOrbTankRows();
+    };
+
+    window.updateOrbTankData = function(id, field, value) {
+        const tank = orbBunkerTanks.find(t => t.id === id);
+        if (tank) tank[field] = value;
+    };
+
+    window.renderOrbTankRows = function() {
+        const container = document.getElementById('orbTankListContainer');
+        if (!container) return;
+        const allTanks = JSON.parse(localStorage.getItem('vessel_tanks')) || [];
+        if (orbBunkerTanks.length === 0) {
+            container.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); text-align:center;">No tanks added yet. Click "+ Add Tank"</div>';
+            return;
+        }
+        container.innerHTML = orbBunkerTanks.map((t, index) => `
+            <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:0.75rem; color:var(--accent); font-weight:bold;">Tank #${index + 1}</span>
+                    <button type="button" onclick="removeOrbTankRow(${t.id})" style="background:transparent; border:none; color:var(--red); cursor:pointer; font-size:1.1rem;">🗑️</button>
+                </div>
+                <div class="form-group" style="margin-bottom:8px;">
+                    <select onchange="updateOrbTankData(${t.id}, 'name', this.value)" style="width:100%; padding:8px; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; font-size:0.8rem;">
+                        <option value="">-- Select Tank --</option>
+                        ${allTanks.map(opt => `<option value="${opt.name}" ${t.name === opt.name ? 'selected' : ''}>${opt.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="row-2">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:0.65rem;">Added (MT)</label>
+                        <input type="number" step="0.1" value="${t.added}" onchange="updateOrbTankData(${t.id}, 'added', this.value)" style="padding:8px; font-size:0.8rem;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:0.65rem;">Total (MT)</label>
+                        <input type="number" step="0.1" value="${t.total}" onchange="updateOrbTankData(${t.id}, 'total', this.value)" style="padding:8px; font-size:0.8rem;">
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    document.getElementById('btnGenOrb').addEventListener('click', function() {
+        setTimeout(() => {
+            const selectedCode = document.getElementById('orbCodeSelect').value;
+            const resBox = document.getElementById('resOrb');
+            if ((selectedCode === 'H_FUEL' || selectedCode === 'H_LUBE') && resBox.innerText.length > 10) {
+                if (!resBox.innerText.includes('Tanks Distribution:')) {
+                    let tanksText = '\n\nTanks Distribution:\n';
+                    let hasTanks = false;
+                    orbBunkerTanks.forEach(t => {
+                        if (t.name && parseFloat(t.added) > 0) {
+                            const totalVal = t.total ? t.total : '0';
+                            tanksText += `${t.added} MT added to ${t.name} now containing ${totalVal} MT\n`;
+                            hasTanks = true;
+                        }
+                    });
+                    if (hasTanks) { resBox.innerText = resBox.innerText + tanksText; }
+                }
+            }
+        }, 50);
+    });
+
+    // === ПОЛНАЯ ЛОГИКА ДЛЯ ЗАМЕТОК ===
+    window.saveNote = function() {
+        const title = document.getElementById('noteTitle').value;
+        const body = document.getElementById('noteBody').value;
+        const category = document.getElementById('noteCategory').value;
+        const isPinned = document.getElementById('notePinned').value === 'yes';
+        if (!title && !body) { alert('Введите заголовок или текст заметки!'); return; }
+        let notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+        if (editingNoteId) {
+            const index = notes.findIndex(n => n.id === editingNoteId);
+            if (index !== -1) {
+                notes[index].title = title; notes[index].body = body; notes[index].category = category; notes[index].isPinned = isPinned;
+            }
+            cancelEditNote();
+        } else {
+            notes.push({ id: Date.now().toString(), title: title, body: body, category: category, isPinned: isPinned, timestamp: Date.now() });
+            document.getElementById('noteTitle').value = ''; document.getElementById('noteBody').value = '';
+        }
+        localStorage.setItem('vessel_notes', JSON.stringify(notes));
+        renderNotesList();
+    };
+
+    window.editNote = function(id) {
+        let notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+        const note = notes.find(n => n.id === id);
+        if (!note) return;
+        document.getElementById('noteTitle').value = note.title || '';
+        document.getElementById('noteBody').value = note.body || '';
+        document.getElementById('noteCategory').value = note.category || 'General';
+        document.getElementById('notePinned').value = note.isPinned ? 'yes' : 'no';
+        editingNoteId = id;
+        const btn = document.getElementById('btnAddNote');
+        btn.textContent = '💾 Save Changes (Сохранить)';
+        btn.style.background = 'var(--yellow)'; btn.style.color = '#000';
+        document.getElementById('btnCancelEditNote').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEditNote = function() {
+        editingNoteId = null;
+        document.getElementById('noteTitle').value = ''; document.getElementById('noteBody').value = '';
+        const btn = document.getElementById('btnAddNote');
+        btn.textContent = '+ Add Note (Добавить)';
+        btn.style.background = 'linear-gradient(135deg, #0284C7, #38BDF8)'; btn.style.color = '#fff';
+        document.getElementById('btnCancelEditNote').style.display = 'none';
+    };
+
+    window.deleteNote = function(id) {
+        if (!confirm('Удалить эту заметку?')) return;
+        let notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+        notes = notes.filter(n => n.id !== id);
+        localStorage.setItem('vessel_notes', JSON.stringify(notes));
+        renderNotesList();
+    };
+
+    window.renderNotesList = function() {
+        const listContainer = document.getElementById('notesList');
+        if (!listContainer) return;
+        let notes = JSON.parse(localStorage.getItem('vessel_notes')) || [];
+        const filter = document.getElementById('noteFilter').value;
+        const search = document.getElementById('noteSearch').value.toLowerCase();
+        if (filter === 'open') notes = notes.filter(n => !n.isPinned); 
+        else if (filter !== 'all') notes = notes.filter(n => n.category === filter);
+        if (search) notes = notes.filter(n => (n.title && n.title.toLowerCase().includes(search)) || (n.body && n.body.toLowerCase().includes(search)));
+        notes.sort((a, b) => { if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1; return b.timestamp - a.timestamp; });
+        if (notes.length === 0) { listContainer.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">Нет заметок</div>'; return; }
+        const icons = { 'Inspector': '🔍', 'Superintendent': '👔', 'PhonePrep': '📞', 'Task': '✅', 'General': '📝' };
+        listContainer.innerHTML = notes.map(n => {
+            const dateStr = new Date(n.timestamp).toLocaleDateString();
+            const icon = icons[n.category] || '📝';
+            return `
+                <div style="background:var(--card); border:1px solid ${n.isPinned ? 'var(--accent)' : 'var(--border)'}; border-radius:12px; padding:12px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                        <div style="font-weight:700; color:var(--text); font-size:0.9rem;">${icon} ${n.title || '(без названия)'}</div>
+                        ${n.isPinned ? '<span style="color:var(--accent); font-size:0.8rem;">📌</span>' : ''}
+                    </div>
+                    ${n.body ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; white-space:pre-wrap;">${n.body}</div>` : ''}
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:8px; margin-top:8px;">
+                        <div style="font-size:0.65rem; color:var(--text-muted);">${n.category} • ${dateStr}</div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn" style="margin:0; padding:4px 8px; width:auto; font-size:0.75rem; background:rgba(56,189,248,0.15); color:var(--accent); border:1px solid rgba(56,189,248,0.3);" onclick="editNote('${n.id}')">✏️</button>
+                            <button class="btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteNote('${n.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    document.getElementById('noteFilter').addEventListener('change', renderNotesList);
+    document.getElementById('noteSearch').addEventListener('input', renderNotesList);
+    setTimeout(renderNotesList, 100);
 </script>
 </body>
 </html>

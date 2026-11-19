@@ -270,9 +270,30 @@
 
     /* DELIVERY details */
     details > summary { list-style: none; }
+    
+    /* ФИКС ПЕРЕНОСА ТЕКСТА В DELIVERY */
+    .delivery-note-input, 
+    .delivery-text-wrap {
+        white-space: pre-wrap !important; 
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        height: auto !important;
+        min-height: 40px;
+        resize: vertical;
+    }
     details > summary::-webkit-details-marker { display: none; }
     details > summary::before { content: '▸ '; display: inline-block; transition: transform 0.2s; }
     details[open] > summary::before { transform: rotate(90deg); }
+
+/* ФИКС ПЕРЕНОСА ТЕКСТА ДЛЯ DELIVERY */
+.auto-expand-input {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    height: auto !important;
+    min-height: 40px;
+    resize: vertical;
+}
 </style>
 </head>
 <body>
@@ -4816,6 +4837,40 @@
 
     // Первичная отрисовка при загрузке
     setTimeout(renderBoltData, 100);
+        // === АВТО-ФИКС ПОЛЕЙ В DELIVERY ===
+    function fixDeliveryInputs() {
+        const container = document.getElementById('deliverySections');
+        if (!container) return;
+        
+        // Ищем все однострочные input внутри чек-листа
+        const inputs = container.querySelectorAll('input[type="text"]');
+        inputs.forEach(input => {
+            // Проверяем, не заменили ли мы уже это поле
+            if (input.dataset.fixed === 'true') return; 
+
+            const textarea = document.createElement('textarea');
+            textarea.className = input.className + ' auto-expand-input';
+            textarea.placeholder = input.placeholder;
+            textarea.value = input.value;
+            textarea.rows = 2;
+            textarea.dataset.fixed = 'true';
+            
+            // Переносим обработчики событий (если они были)
+            textarea.onchange = input.onchange;
+            textarea.oninput = input.oninput;
+            textarea.onblur = input.onblur;
+
+            input.parentNode.replaceChild(textarea, input);
+        });
+    }
+
+    // Запускаем фикс каждые 500 мс, если открыта вкладка Delivery
+    setInterval(() => {
+        const deliveryTab = document.getElementById('tab-delivery');
+        if (deliveryTab && deliveryTab.style.display === 'block') {
+            fixDeliveryInputs();
+        }
+    }, 500);
 </script>
 </body>
 </html>

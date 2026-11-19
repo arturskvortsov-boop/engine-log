@@ -4939,40 +4939,52 @@
         renderBoltData();
         renderPipeData();
     }, 100);
-        // === АВТО-ФИКС ПОЛЕЙ В DELIVERY ===
-    function fixDeliveryInputs() {
-        const container = document.getElementById('deliverySections');
-        if (!container) return;
-        
-        // Ищем все однострочные input внутри чек-листа
-        const inputs = container.querySelectorAll('input[type="text"]');
-        inputs.forEach(input => {
-            // Проверяем, не заменили ли мы уже это поле
-            if (input.dataset.fixed === 'true') return; 
+    // === ЖЕЛЕЗОБЕТОННЫЙ ФИКС ПЕРЕНОСА ТЕКСТА В DELIVERY ===
+    const deliveryObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+                const deliveryTab = document.getElementById('tab-delivery');
+                // Ищем абсолютно все инпуты внутри Delivery, кроме чекбоксов
+                if (deliveryTab) {
+                    const inputs = deliveryTab.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        // Если это уже textarea или чекбокс — пропускаем
+                        if (input.tagName === 'TEXTAREA' || input.type === 'checkbox' || input.type === 'radio' || input.dataset.replaced === 'true') return;
 
-            const textarea = document.createElement('textarea');
-            textarea.className = input.className + ' auto-expand-input';
-            textarea.placeholder = input.placeholder;
-            textarea.value = input.value;
-            textarea.rows = 2;
-            textarea.dataset.fixed = 'true';
-            
-            // Переносим обработчики событий (если они были)
-            textarea.onchange = input.onchange;
-            textarea.oninput = input.oninput;
-            textarea.onblur = input.onblur;
+                        // Создаем вместо него textarea
+                        const textarea = document.createElement('textarea');
+                        textarea.className = input.className;
+                        textarea.placeholder = input.placeholder || 'Note...';
+                        textarea.value = input.value;
+                        textarea.rows = 2;
+                        textarea.dataset.replaced = 'true';
+                        
+                        // Переносим стили, чтобы выглядело как раньше
+                        textarea.style.cssText = input.style.cssText;
+                        textarea.style.whiteSpace = 'pre-wrap';
+                        textarea.style.wordWrap = 'break-word';
+                        textarea.style.overflowWrap = 'break-word';
+                        textarea.style.resize = 'vertical';
+                        textarea.style.minHeight = '45px';
+                        textarea.style.marginTop = '5px';
+                        textarea.style.fontFamily = 'inherit';
+                        textarea.style.fontSize = '0.9rem';
 
-            input.parentNode.replaceChild(textarea, input);
+                        // Переносим обработчики событий (сохранение)
+                        textarea.onchange = input.onchange;
+                        textarea.oninput = input.oninput;
+                        textarea.onblur = input.onblur;
+
+                        // Заменяем
+                        input.parentNode.replaceChild(textarea, input);
+                    });
+                }
+            }
         });
-    }
+    });
 
-    // Запускаем фикс каждые 500 мс, если открыта вкладка Delivery
-    setInterval(() => {
-        const deliveryTab = document.getElementById('tab-delivery');
-        if (deliveryTab && deliveryTab.style.display === 'block') {
-            fixDeliveryInputs();
-        }
-    }, 500);
+    // Запускаем слежку за всем документом
+    deliveryObserver.observe(document.body, { childList: true, subtree: true });
 </script>
 </body>
 </html>

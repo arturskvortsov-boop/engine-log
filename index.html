@@ -951,32 +951,46 @@
             ℹ️ Справочник размеров метрического крепежа (ISO / JIS). Выбери размер болта, чтобы узнать шаг резьбы, размер ключа, шестигранника и сверла для нарезки.
         </div>
 
-        <div class="form-group">
-            <label>Nominal thread size (Номинальный размер)</label>
-            <select id="boltSizeSelect" onchange="renderBoltData()" style="border-color:var(--accent); font-weight:bold; font-size:1.1rem;">
-                <option value="M3">M3</option>
-                <option value="M4">M4</option>
-                <option value="M5">M5</option>
-                <option value="M6">M6</option>
-                <option value="M8">M8</option>
-                <option value="M10">M10</option>
-                <option value="M12">M12</option>
-                <option value="M14">M14</option>
-                <option value="M16">M16</option>
-                <option value="M18">M18</option>
-                <option value="M20">M20</option>
-                <option value="M22">M22</option>
-                <option value="M24">M24</option>
-                <option value="M30">M30</option>
-                <option value="M36">M36</option>
-            </select>
+        <!-- КОНВЕРТЕР КООРДИНАТ -->
+        <div class="form-group" style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 15px;">
+            <label>Coordinate Converter (Десятичные -> Мин/Сек)</label>
+            <input type="text" id="coordInput" placeholder="Например: 35.103333, 129.035000" oninput="convertCoords()">
+            <div id="coordResult" style="display:none; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; margin-top:8px; font-family:monospace;"></div>
         </div>
 
-        <!-- Сюда будут выводиться данные -->
+        <!-- РАЗМЕРЫ ТРУБ -->
+        <div class="form-group" style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 15px;">
+            <label>Pipe Sizes (Размеры труб)</label>
+            <select id="pipeSizeSelect" onchange="renderPipeData()" style="border-color:var(--accent); font-weight:bold; font-size:1.1rem;">
+                <option value="15A">15A (1/2")</option>
+                <option value="20A">20A (3/4")</option>
+                <option value="25A">25A (1")</option>
+                <option value="32A">32A (1.1/4")</option>
+                <option value="40A">40A (1.1/2")</option>
+                <option value="50A">50A (2")</option>
+                <option value="65A">65A (2.1/2")</option>
+                <option value="80A">80A (3")</option>
+                <option value="100A">100A (4")</option>
+                <option value="125A" selected>125A (5")</option>
+                <option value="150A">150A (6")</option>
+                <option value="200A">200A (8")</option>
+                <option value="250A">250A (10")</option>
+                <option value="300A">300A (12")</option>
+            </select>
+            <div id="pipeDataContainer" style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:12px; margin-top:10px;"></div>
+        </div>
+
+        <!-- БОЛТЫ -->
+        <div class="form-group" style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 15px;">
+            <label>Bolts and Nuts (Крепеж)</label>
+            <select id="boltSizeSelect" onchange="renderBoltData()" style="border-color:var(--accent); font-weight:bold; font-size:1.1rem;">
+                <!-- Список генерируется через JS, чтобы не засорять HTML -->
+            </select>
+        </div>
         <div id="boltDataContainer" style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:12px; margin-top:20px;"></div>
 
         <div style="font-size:0.65rem; color:var(--text-muted); margin-top:15px; line-height:1.4;">
-            Pitch and spanner: ISO 4032; legacy JIS nuts: JIS B 1181 annex (common on Japanese-built ships); hex keys: ISO 4762 socket screws. Tap drill = Nominal Diameter - Pitch.
+            Pitch and spanner: ISO 4032; legacy JIS nuts: JIS B 1181 annex; hex keys: ISO 4762. Tap drill = Nominal Diameter - Pitch.
         </div>
     </div>
 </div>
@@ -4804,8 +4818,14 @@
         'M20': { d: 20, pitchC: 2.5,  pitchF: 1.5,  spanner: 30,  hex: 17,  drill: 17.5 },
         'M22': { d: 22, pitchC: 2.5,  pitchF: 1.5,  spanner: 32,  hex: 17,  drill: 19.5 },
         'M24': { d: 24, pitchC: 3.0,  pitchF: 2.0,  spanner: 36,  hex: 19,  drill: 21.0 },
+        'M27': { d: 27, pitchC: 3.0,  pitchF: 2.0,  spanner: 41,  hex: 20,  drill: 24.0 },
         'M30': { d: 30, pitchC: 3.5,  pitchF: 2.0,  spanner: 46,  hex: 22,  drill: 26.5 },
-        'M36': { d: 36, pitchC: 4.0,  pitchF: 3.0,  spanner: 55,  hex: 27,  drill: 32.0 }
+        'M33': { d: 33, pitchC: 3.5,  pitchF: 2.0,  spanner: 50,  hex: 24,  drill: 29.5 },
+        'M36': { d: 36, pitchC: 4.0,  pitchF: 3.0,  spanner: 55,  hex: 27,  drill: 32.0 },
+        'M42': { d: 42, pitchC: 4.5,  pitchF: 3.0,  spanner: 65,  hex: 32,  drill: 37.5 },
+        'M48': { d: 48, pitchC: 5.0,  pitchF: 3.0,  spanner: 75,  hex: 38,  drill: 43.0 },
+        'M56': { d: 56, pitchC: 5.5,  pitchF: 4.0,  spanner: 85,  hex: 46,  drill: 50.5 },
+        'M64': { d: 64, pitchC: 6.0,  pitchF: 4.0,  spanner: 95,  hex: 55,  drill: 58.0 }
     };
 
     window.renderBoltData = function() {
@@ -4836,7 +4856,89 @@
     };
 
     // Первичная отрисовка при загрузке
-    setTimeout(renderBoltData, 100);
+        setTimeout(renderBoltData, 100);
+    // === СПРАВОЧНИК ТРУБ ===
+    const pipeDatabase = {
+        '15A': { inch: '1/2', dn: 15, jisOD: 21.7, sgpWall: 2.8, asmeOD: 21.34 },
+        '20A': { inch: '3/4', dn: 20, jisOD: 27.2, sgpWall: 2.8, asmeOD: 26.67 },
+        '25A': { inch: '1', dn: 25, jisOD: 34.0, sgpWall: 3.2, asmeOD: 33.40 },
+        '32A': { inch: '1.1/4', dn: 32, jisOD: 42.7, sgpWall: 3.5, asmeOD: 42.16 },
+        '40A': { inch: '1.1/2', dn: 40, jisOD: 48.6, sgpWall: 3.5, asmeOD: 48.26 },
+        '50A': { inch: '2', dn: 50, jisOD: 60.5, sgpWall: 3.8, asmeOD: 60.33 },
+        '65A': { inch: '2.1/2', dn: 65, jisOD: 76.3, sgpWall: 4.2, asmeOD: 73.03 },
+        '80A': { inch: '3', dn: 80, jisOD: 89.1, sgpWall: 4.2, asmeOD: 88.90 },
+        '100A': { inch: '4', dn: 100, jisOD: 114.3, sgpWall: 4.5, asmeOD: 114.30 },
+        '125A': { inch: '5', dn: 125, jisOD: 139.8, sgpWall: 4.5, asmeOD: 141.30 },
+        '150A': { inch: '6', dn: 150, jisOD: 165.2, sgpWall: 5.0, asmeOD: 168.28 },
+        '200A': { inch: '8', dn: 200, jisOD: 216.3, sgpWall: 5.8, asmeOD: 219.08 },
+        '250A': { inch: '10', dn: 250, jisOD: 267.4, sgpWall: 6.6, asmeOD: 273.05 },
+        '300A': { inch: '12', dn: 300, jisOD: 318.5, sgpWall: 6.9, asmeOD: 323.85 }
+    };
+
+    window.renderPipeData = function() {
+        const size = document.getElementById('pipeSizeSelect').value;
+        const data = pipeDatabase[size];
+        const container = document.getElementById('pipeDataContainer');
+        if (!data || !container) return;
+        
+        const row = (label, value, unit) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed rgba(255,255,255,0.1);">
+                <span style="color:var(--text-muted); font-size:0.85rem;">${label}</span>
+                <span style="color:var(--text); font-weight:700; font-size:0.95rem;">${value} <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${unit}</span></span>
+            </div>`;
+
+        container.innerHTML = 
+            row('Inch nominal size and DN', `${data.inch}B • DN ${data.dn}`, '') +
+            row('Outside diameter (JIS)', data.jisOD, 'mm') +
+            row('Wall and inside diameter (SGP)', `${data.sgpWall} • ${(data.jisOD - data.sgpWall * 2).toFixed(1)}`, 'mm') +
+            row('Outside diameter (ASME)', data.asmeOD, 'mm');
+    };
+
+    // === КОНВЕРТЕР КООРДИНАТ ===
+    window.convertCoords = function() {
+        const input = document.getElementById('coordInput').value;
+        const resultBox = document.getElementById('coordResult');
+        if (!input.includes(',')) { resultBox.style.display = 'none'; return; }
+        
+        const parts = input.split(',');
+        let lat = parseFloat(parts[0].trim());
+        let lon = parseFloat(parts[1].trim());
+        
+        if (isNaN(lat) || isNaN(lon)) { resultBox.style.display = 'none'; return; }
+
+        const formatCoord = (dec, isLat) => {
+            const dir = dec >= 0 ? (isLat ? 'N' : 'E') : (isLat ? 'S' : 'W');
+            const abs = Math.abs(dec);
+            const deg = Math.floor(abs);
+            let min = ((abs - deg) * 60).toFixed(1);
+            if (min === '60.0') { deg += 1; min = '0.0'; }
+            return `${deg}-${min.padStart(4, '0')}${dir}`;
+        };
+
+        const noonFormat = `${formatCoord(lat, true)} ${formatCoord(lon, false)}`;
+        
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text-muted); font-size:0.85rem;">Noon report format:</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:var(--green); font-size:1.1rem; font-weight:bold;">${noonFormat}</span>
+                <button class="btn" style="margin:0; width:auto; padding:6px 12px; font-size:0.8rem;" onclick="navigator.clipboard.writeText('${noonFormat}'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500);">Copy</button>
+            </div>
+        `;
+    };
+
+    // Заполняем список болтов динамически и запускаем отрисовку
+    setTimeout(() => {
+        const boltSelect = document.getElementById('boltSizeSelect');
+        if (boltSelect) {
+            boltSelect.innerHTML = Object.keys(boltDatabase).map(key => `<option value="${key}">${key}</option>`).join('');
+            boltSelect.value = 'M8'; // По умолчанию
+        }
+        renderBoltData();
+        renderPipeData();
+    }, 100);
         // === АВТО-ФИКС ПОЛЕЙ В DELIVERY ===
     function fixDeliveryInputs() {
         const container = document.getElementById('deliverySections');

@@ -820,7 +820,16 @@
         <div class="form-group"><label>Additional Instructions (Дополнительно)</label><textarea id="noExtra" placeholder="Например: Обратить внимание на насос охлаждения #2, возможна утечка..."></textarea></div>
         <button class="btn" id="btnGenNo">Generate Night Order</button>
         <div class="result-box" id="resNo"></div>
-        <button class="btn copy-btn" id="btnCopyNo">📋 Copy Text</button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+            <button class="btn copy-btn" id="btnCopyNo" style="margin-top:0;">📋 Copy Text</button>
+            <button class="btn" id="btnSaveNo" style="margin-top:0; background:var(--green); color:#000;">💾 Save to History</button>
+        </div>
+    </div>
+
+    <!-- НОВЫЙ БЛОК: ИСТОРИЯ НОЧНЫХ ПРИКАЗОВ -->
+    <div class="card">
+        <h2>History (История)</h2>
+        <div id="noHistoryList"></div>
     </div>
 </div>
 
@@ -909,6 +918,44 @@
                 <div class="form-group"><label>Min ROB (Минимум, m³)</label><input type="number" id="newLubeMin" step="0.1" value="1"></div>
             </div>
             <button class="btn" id="btnAddLubeRob">+ Add / Update ROB</button>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 18: TOOLS (BOLTS & NUTS) -->
+<div id="tab-tools" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>Bolts and Nuts (Крепеж)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Справочник размеров метрического крепежа (ISO / JIS). Выбери размер болта, чтобы узнать шаг резьбы, размер ключа, шестигранника и сверла для нарезки.
+        </div>
+
+        <div class="form-group">
+            <label>Nominal thread size (Номинальный размер)</label>
+            <select id="boltSizeSelect" onchange="renderBoltData()" style="border-color:var(--accent); font-weight:bold; font-size:1.1rem;">
+                <option value="M3">M3</option>
+                <option value="M4">M4</option>
+                <option value="M5">M5</option>
+                <option value="M6">M6</option>
+                <option value="M8">M8</option>
+                <option value="M10">M10</option>
+                <option value="M12">M12</option>
+                <option value="M14">M14</option>
+                <option value="M16">M16</option>
+                <option value="M18">M18</option>
+                <option value="M20">M20</option>
+                <option value="M22">M22</option>
+                <option value="M24">M24</option>
+                <option value="M30">M30</option>
+                <option value="M36">M36</option>
+            </select>
+        </div>
+
+        <!-- Сюда будут выводиться данные -->
+        <div id="boltDataContainer" style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:12px; margin-top:20px;"></div>
+
+        <div style="font-size:0.65rem; color:var(--text-muted); margin-top:15px; line-height:1.4;">
+            Pitch and spanner: ISO 4032; legacy JIS nuts: JIS B 1181 annex (common on Japanese-built ships); hex keys: ISO 4762 socket screws. Tap drill = Nominal Diameter - Pitch.
         </div>
     </div>
 </div>
@@ -1364,6 +1411,7 @@
             { id: 'fuel', label: '🧮 Fuel' },
             { id: 'lube', label: '🧴 Lube' },
             { id: 'pump', label: '🚰 Pump' },
+            { id: 'tools', label: '🔩 Tools' }, /* <--- НОВАЯ ВКЛАДКА */
             { id: 'hours', label: '⏱️ Hours' },
             { id: 'nightorder', label: '🌙 Night Order' },
             { id: 'tasks', label: '🛠️ Tasks' }
@@ -4649,6 +4697,125 @@
     document.getElementById('noteFilter').addEventListener('change', renderNotesList);
     document.getElementById('noteSearch').addEventListener('input', renderNotesList);
     setTimeout(renderNotesList, 100);
+    // === ИСТОРИЯ НОЧНЫХ ПРИКАЗОВ ===
+    document.getElementById('btnSaveNo').addEventListener('click', function() {
+        const text = document.getElementById('resNo').innerText;
+        if (!text || text.trim() === '') {
+            alert('Сначала сгенерируйте приказ!');
+            return;
+        }
+
+        let history = JSON.parse(localStorage.getItem('vessel_night_orders')) || [];
+        history.push({
+            id: Date.now().toString(),
+            date: new Date().toLocaleDateString(),
+            text: text
+        });
+
+        localStorage.setItem('vessel_night_orders', JSON.stringify(history));
+        renderNightOrderHistory();
+        
+        // Визуальный отклик
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Saved!';
+        setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+    });
+
+    window.deleteNightOrder = function(id) {
+        if (!confirm('Удалить этот приказ из истории?')) return;
+        let history = JSON.parse(localStorage.getItem('vessel_night_orders')) || [];
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('vessel_night_orders', JSON.stringify(history));
+        renderNightOrderHistory();
+    };
+
+    window.copyNightOrder = function(id) {
+        let history = JSON.parse(localStorage.getItem('vessel_night_orders')) || [];
+        const item = history.find(i => i.id === id);
+        if (item) {
+            navigator.clipboard.writeText(item.text).then(() => {
+                alert('Скопировано в буфер обмена!');
+            });
+        }
+    };
+
+    window.renderNightOrderHistory = function() {
+        const container = document.getElementById('noHistoryList');
+        if (!container) return;
+
+        let history = JSON.parse(localStorage.getItem('vessel_night_orders')) || [];
+        
+        if (history.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:10px;">История пуста</div>';
+            return;
+        }
+
+        // Сортируем: новые сверху
+        history.sort((a, b) => b.id - a.id);
+
+        container.innerHTML = history.map(item => `
+            <div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:0.75rem; color:var(--accent); font-weight:bold;">Order from: ${item.date}</span>
+                    <button class="btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteNightOrder('${item.id}')">🗑️</button>
+                </div>
+                <div style="font-family:monospace; font-size:0.8rem; color:var(--text); white-space:pre-wrap; margin-bottom:12px; padding:10px; background:var(--bg); border-radius:8px;">${item.text}</div>
+                <button class="btn" style="margin-top:0; background:var(--border); color:var(--text); padding:8px; font-size:0.8rem;" onclick="copyNightOrder('${item.id}')">📋 Copy</button>
+            </div>
+        `).join('');
+    };
+
+    // Отрисовываем историю при загрузке страницы
+    setTimeout(renderNightOrderHistory, 100);
+    // === СПРАВОЧНИК КРЕПЕЖА (BOLTS & NUTS) ===
+    const boltDatabase = {
+        'M3':  { d: 3,  pitchC: 0.5,  pitchF: 0.35, spanner: 5.5, hex: 2.5, drill: 2.5 },
+        'M4':  { d: 4,  pitchC: 0.7,  pitchF: 0.5,  spanner: 7,   hex: 3,   drill: 3.3 },
+        'M5':  { d: 5,  pitchC: 0.8,  pitchF: 0.5,  spanner: 8,   hex: 4,   drill: 4.2 },
+        'M6':  { d: 6,  pitchC: 1.0,  pitchF: 0.75, spanner: 10,  hex: 5,   drill: 5.0 },
+        'M8':  { d: 8,  pitchC: 1.25, pitchF: 1.0,  spanner: 13,  hex: 6,   drill: 6.8 },
+        'M10': { d: 10, pitchC: 1.5,  pitchF: 1.25, spanner: 17,  hex: 8,   drill: 8.5 },
+        'M12': { d: 12, pitchC: 1.75, pitchF: 1.25, spanner: 19,  hex: 10,  drill: 10.2 },
+        'M14': { d: 14, pitchC: 2.0,  pitchF: 1.5,  spanner: 22,  hex: 11,  drill: 12.0 },
+        'M16': { d: 16, pitchC: 2.0,  pitchF: 1.5,  spanner: 24,  hex: 14,  drill: 14.0 },
+        'M18': { d: 18, pitchC: 2.5,  pitchF: 1.5,  spanner: 27,  hex: 14,  drill: 15.5 },
+        'M20': { d: 20, pitchC: 2.5,  pitchF: 1.5,  spanner: 30,  hex: 17,  drill: 17.5 },
+        'M22': { d: 22, pitchC: 2.5,  pitchF: 1.5,  spanner: 32,  hex: 17,  drill: 19.5 },
+        'M24': { d: 24, pitchC: 3.0,  pitchF: 2.0,  spanner: 36,  hex: 19,  drill: 21.0 },
+        'M30': { d: 30, pitchC: 3.5,  pitchF: 2.0,  spanner: 46,  hex: 22,  drill: 26.5 },
+        'M36': { d: 36, pitchC: 4.0,  pitchF: 3.0,  spanner: 55,  hex: 27,  drill: 32.0 }
+    };
+
+    window.renderBoltData = function() {
+        const size = document.getElementById('boltSizeSelect').value;
+        const data = boltDatabase[size];
+        const container = document.getElementById('boltDataContainer');
+        
+        if (!data || !container) return;
+
+        // Функция для создания строки
+        const row = (label, value, unit) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,0.1);">
+                <span style="color:var(--text-muted); font-size:0.85rem;">${label}</span>
+                <span style="color:var(--text); font-weight:700; font-size:1rem;">${value} <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${unit}</span></span>
+            </div>
+        `;
+
+        container.innerHTML = 
+            row('Thread diameter', data.d, 'mm') +
+            row('Pitch (coarse thread)', data.pitchC, 'mm') +
+            row('Pitch (fine thread, JIS)', data.pitchF, 'mm') +
+            row('Spanner (ISO and legacy JIS)', data.spanner, 'mm') +
+            row('Hex key (socket screw)', data.hex, 'mm') +
+            `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;">
+                <span style="color:var(--text-muted); font-size:0.85rem;">Tap drill (coarse thread)</span>
+                <span style="color:var(--green); font-weight:800; font-size:1.05rem;">${data.drill} <span style="font-size:0.75rem; color:var(--green); opacity:0.7; font-weight:normal;">mm</span></span>
+            </div>`;
+    };
+
+    // Первичная отрисовка при загрузке
+    setTimeout(renderBoltData, 100);
 </script>
 </body>
 </html>

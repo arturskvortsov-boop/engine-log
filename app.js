@@ -7,7 +7,8 @@
             { id: 'chg', label: '⛽ Changeover' },
             { id: 'orb', label: '📘 ORB Gen' },
             { id: 'bunkering', label: '⛽ Bunker' },
-            { id: 'tanks', label: '⚙️ Tanks' }
+            { id: 'tanks', label: '⚙️ Tanks' },
+            { id: 'annexes', label: '📗 MARPOL Annexes' }
         ],
         engine: [
             { id: 'fuel', label: '🧮 Fuel' },
@@ -3357,3 +3358,214 @@
 
     // Запускаем слежку за всем документом
     deliveryObserver.observe(document.body, { childList: true, subtree: true });
+
+const MARPOL_ANNEXES = {
+    "I": {
+        "title_ru": "Приложение I — Нефть",
+        "title_en": "Annex I — Oil",
+        "ru": [
+            "Вступает в силу: 2 октября 1983 г.",
+            "Цель: предотвращение загрязнения моря нефтью и нефтесодержащими смесями.",
+            "Область применения: все суда, включая танкеры, а также нефтяные терминалы и ремонтные базы.",
+            "Ключевые требования:",
+            "• Запрет сброса нефти и нефтесодержащих смесей в море, кроме случаев, разрешённых Правилом 4 (вне особых районов, при концентрации ≤15 ppm, судно на ходу, вдали от берега).",
+            "• Обязательное наличие Oil Record Book (ORB) — журнала нефтяных операций (Часть I для всех судов, Часть II для танкеров).",
+            "• Оборудование: сепаратор льяльных вод (15 ppm), система автоматического замера и сигнализации, система мойки танков (COW) для танкеров.",
+            "• Особые районы: Средиземное, Балтийское, Чёрное, Красное моря, Персидский залив, Антарктика и др. — сброс строго запрещён.",
+            "• SOPEP — судовой план чрезвычайных мер по борьбе с загрязнением нефтью.",
+            "• Двойной корпус для танкеров (согласно графику вывода однокорпусных судов)."
+        ],
+        "en": [
+            "Entry into force: 2 October 1983.",
+            "Purpose: prevention of pollution of the sea by oil and oily mixtures.",
+            "Scope: all ships, including tankers, as well as oil terminals and repair yards.",
+            "Key requirements:",
+            "• Prohibition of discharge of oil and oily mixtures into the sea, except as permitted by Regulation 4 (outside special areas, concentration ≤15 ppm, ship underway, away from shore).",
+            "• Mandatory Oil Record Book (ORB) — Part I for all ships, Part II for tankers.",
+            "• Equipment: oily water separator (15 ppm), automatic monitoring and alarm system, crude oil washing (COW) for tankers.",
+            "• Special areas: Mediterranean, Baltic, Black Sea, Red Sea, Persian Gulf, Antarctic and others — discharge strictly prohibited.",
+            "• SOPEP — Shipboard Oil Pollution Emergency Plan.",
+            "• Double hull for tankers (per phase-out schedule for single-hull ships)."
+        ]
+    },
+    "II": {
+        "title_ru": "Приложение II — Вредные жидкие вещества наливом",
+        "title_en": "Annex II — Noxious Liquid Substances in Bulk",
+        "ru": [
+            "Вступает в силу: 6 апреля 1987 г.",
+            "Цель: контроль загрязнения моря вредными жидкими веществами, перевозимыми наливом.",
+            "Область применения: суда, перевозящие вредные жидкие вещества наливом.",
+            "Классификация веществ (по категориям загрязнения X, Y, Z, OS):",
+            "• Категория X — наибольшая опасность; сброс запрещён.",
+            "• Категория Y — умеренная опасность; сброс ограничен.",
+            "• Категория Z — малая опасность; сброс с ограничениями.",
+            "• OS — Other Substances (прочие вещества).",
+            "Ключевые требования:",
+            "• Наличие P&A Manual (Procedures and Arrangements Manual).",
+            "• Cargo Record Book (CRB) — журнал грузовых операций.",
+            "• Предварительная мойка танков (prewash) для веществ категорий X и Y.",
+            "• Соблюдение процедур сброса остатков и промывочных вод.",
+            "• Оборудование для мойки танков и система подогрева (при необходимости)."
+        ],
+        "en": [
+            "Entry into force: 6 April 1987.",
+            "Purpose: control of pollution by noxious liquid substances carried in bulk.",
+            "Scope: ships carrying noxious liquid substances in bulk.",
+            "Classification of substances (pollution categories X, Y, Z, OS):",
+            "• Category X — major hazard; discharge prohibited.",
+            "• Category Y — moderate hazard; discharge restricted.",
+            "• Category Z — minor hazard; discharge with limitations.",
+            "• OS — Other Substances.",
+            "Key requirements:",
+            "• P&A Manual (Procedures and Arrangements Manual) on board.",
+            "• Cargo Record Book (CRB).",
+            "• Prewash of tanks for Category X and Y substances.",
+            "• Compliance with procedures for discharge of residues and washings.",
+            "• Tank washing equipment and heating system (where required)."
+        ]
+    },
+    "III": {
+        "title_ru": "Приложение III — Вредные вещества в упаковке",
+        "title_en": "Annex III — Harmful Substances in Packaged Form",
+        "ru": [
+            "Вступает в силу: 1 июля 1992 г.",
+            "Цель: предотвращение загрязнения моря вредными веществами, перевозимыми в упаковке.",
+            "Область применения: суда, перевозящие вредные вещества в упаковке (включая контейнеры, цистерны, грузовые единицы).",
+            "Ключевые требования:",
+            "• Соблюдение требований IMDG Code (Международный кодекс морской перевозки опасных грузов).",
+            "• Маркировка и знаки опасности на упаковке.",
+            "• Документация: декларация грузоотправителя, грузовой план.",
+            "• Правильная укладка, крепление и сегрегация груза.",
+            "• Предотвращение утечек и повреждений упаковки.",
+            "• Действия в случае инцидента (утечка, повреждение) — согласно IMDG Code."
+        ],
+        "en": [
+            "Entry into force: 1 July 1992.",
+            "Purpose: prevention of pollution by harmful substances carried in packaged form.",
+            "Scope: ships carrying harmful substances in packaged form (including containers, tanks, cargo units).",
+            "Key requirements:",
+            "• Compliance with the IMDG Code (International Maritime Dangerous Goods Code).",
+            "• Marking and hazard labels on packages.",
+            "• Documentation: shipper's declaration, cargo plan.",
+            "• Proper stowage, securing and segregation of cargo.",
+            "• Prevention of leaks and damage to packaging.",
+            "• Emergency response to incidents (leakage, damage) per IMDG Code."
+        ]
+    },
+    "IV": {
+        "title_ru": "Приложение IV — Сточные воды",
+        "title_en": "Annex IV — Sewage",
+        "ru": [
+            "Вступает в силу: 27 сентября 2003 г.",
+            "Цель: предотвращение загрязнения моря сточными водами с судов.",
+            "Область применения: суда валовой вместимостью 400 и более, а также суда, имеющие разрешение на перевозку более 15 человек.",
+            "Ключевые требования:",
+            "• Запрет сброса сточных вод в море, кроме случаев, разрешённых Правилом 11.",
+            "• Сброс разрешён: за пределами 3 морских миль от берега (для необработанных — 12 миль), при скорости не менее 4 узлов, с использованием одобренной системы обработки.",
+            "• Оборудование: установка обработки сточных вод (STP) или сборный танк.",
+            "• Соблюдение стандартов сброса (BOD, взвешенные вещества, колиформы).",
+            "• Ведение записей о сбросе (где применимо)."
+        ],
+        "en": [
+            "Entry into force: 27 September 2003.",
+            "Purpose: prevention of pollution by sewage from ships.",
+            "Scope: ships of 400 GT and above, and ships certified to carry more than 15 persons.",
+            "Key requirements:",
+            "• Prohibition of discharge of sewage into the sea, except as permitted by Regulation 11.",
+            "• Discharge permitted: beyond 3 nautical miles from shore (12 miles for untreated), at a speed of not less than 4 knots, using an approved treatment system.",
+            "• Equipment: sewage treatment plant (STP) or holding tank.",
+            "• Compliance with discharge standards (BOD, suspended solids, coliforms).",
+            "• Record keeping of discharges (where applicable)."
+        ]
+    },
+    "V": {
+        "title_ru": "Приложение V — Мусор",
+        "title_en": "Annex V — Garbage",
+        "ru": [
+            "Вступает в силу: 31 декабря 1988 г.",
+            "Цель: предотвращение загрязнения моря мусором с судов.",
+            "Область применения: все суда.",
+            "Ключевые требования:",
+            "• Полный запрет сброса пластика в море.",
+            "• Запрет сброса мусора в особых районах (Средиземное, Балтийское, Чёрное, Красное моря, Персидский залив, Антарктика и др.).",
+            "• Разрешённый сброс (вне особых районов): пищевые отходы — за пределами 12 миль (измельчённые — 3 мили), другие виды — согласно таблице Правила 4.",
+            "• Обязательное наличие Garbage Management Plan (план управления мусором).",
+            "• Garbage Record Book (журнал операций с мусором) для судов ≥400 GT или перевозящих ≥15 человек.",
+            "• Плакаты и маркировка мусорных контейнеров.",
+            "• Сдача мусора в портовые приёмные сооружения."
+        ],
+        "en": [
+            "Entry into force: 31 December 1988.",
+            "Purpose: prevention of pollution by garbage from ships.",
+            "Scope: all ships.",
+            "Key requirements:",
+            "• Complete prohibition of disposal of plastics into the sea.",
+            "• Prohibition of garbage discharge in special areas (Mediterranean, Baltic, Black Sea, Red Sea, Persian Gulf, Antarctic and others).",
+            "• Permitted discharge (outside special areas): food waste — beyond 12 miles (comminuted — 3 miles), other types per Regulation 4 table.",
+            "• Mandatory Garbage Management Plan.",
+            "• Garbage Record Book for ships ≥400 GT or carrying ≥15 persons.",
+            "• Placards and marking of garbage receptacles.",
+            "• Delivery of garbage to port reception facilities."
+        ]
+    },
+    "VI": {
+        "title_ru": "Приложение VI — Загрязнение атмосферы",
+        "title_en": "Annex VI — Air Pollution",
+        "ru": [
+            "Вступает в силу: 19 мая 2005 г.",
+            "Цель: предотвращение загрязнения атмосферы с судов.",
+            "Область применения: все суда, включая стационарные и плавучие платформы.",
+            "Ключевые требования:",
+            "• Ограничение содержания серы в топливе: 0,50% (глобально с 2020 г.), 0,10% в ECA (зоны контроля выбросов).",
+            "• Ограничение выбросов NOx (для дизельных двигателей, в зависимости от даты постройки — Tier I, II, III).",
+            "• Запрет преднамеренных выбросов озоноразрушающих веществ (ODS).",
+            "• Контроль выбросов летучих органических соединений (VOC) при погрузке танкеров.",
+            "• Сжигание на судне (incinerator) — только одобренного типа, запрет сжигания определённых веществ.",
+            "• Наличие IAPP Certificate (Международное свидетельство о предотвращении загрязнения атмосферы).",
+            "• SEEMP (Ship Energy Efficiency Management Plan) и EEDI/EEXI/CII — энергоэффективность.",
+            "• ECA: Балтийское, Северное моря, Северная Америка, Карибский бассейн США."
+        ],
+        "en": [
+            "Entry into force: 19 May 2005.",
+            "Purpose: prevention of air pollution from ships.",
+            "Scope: all ships, including fixed and floating platforms.",
+            "Key requirements:",
+            "• Sulphur content limits in fuel: 0.50% (global from 2020), 0.10% in ECAs (Emission Control Areas).",
+            "• NOx emission limits (for diesel engines, depending on build date — Tier I, II, III).",
+            "• Prohibition of deliberate emissions of ozone-depleting substances (ODS).",
+            "• Control of Volatile Organic Compound (VOC) emissions during tanker loading.",
+            "• Shipboard incineration — approved type only; prohibition of incinerating certain substances.",
+            "• IAPP Certificate (International Air Pollution Prevention Certificate).",
+            "• SEEMP (Ship Energy Efficiency Management Plan) and EEDI/EEXI/CII — energy efficiency.",
+            "• ECAs: Baltic Sea, North Sea, North America, US Caribbean Sea."
+        ]
+    }
+};
+
+    // === MARPOL ANNEXES RENDERER ===
+    window.renderAnnex = function() {
+        const sel = document.getElementById('annexSelect');
+        const langSel = document.getElementById('annexLangSelect');
+        const container = document.getElementById('annexDataContainer');
+        if (!sel || !container) return;
+        const key = sel.value;
+        const lang = langSel ? langSel.value : 'ru';
+        const a = MARPOL_ANNEXES[key];
+        if (!a) { container.innerHTML = '<div style="color:var(--text-muted);">No data</div>'; return; }
+        const title = lang === 'ru' ? a.title_ru : a.title_en;
+        const items = lang === 'ru' ? a.ru : a.en;
+        const listHtml = items.map(line => {
+            const isBullet = line.trim().startsWith('\u2022');
+            const isHeader = line.trim().endsWith(':');
+            let style = 'margin-bottom:8px;';
+            if (isBullet) style += ' padding-left:14px; text-indent:-14px;';
+            if (isHeader) style += ' font-weight:700; color:var(--accent); margin-top:12px;';
+            return '<div style="' + style + '">' + line + '</div>';
+        }).join('');
+        container.innerHTML =
+            '<div style="font-size:1.15rem; font-weight:800; color:var(--accent); margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:10px;">' + title + '</div>' +
+            '<div style="font-size:0.9rem; color:var(--text);">' + listHtml + '</div>';
+    };
+
+    // ????????? ????????? Annexes
+    setTimeout(() => { if (document.getElementById('annexSelect')) renderAnnex(); }, 150);

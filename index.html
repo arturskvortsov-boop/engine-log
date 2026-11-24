@@ -891,6 +891,39 @@
     </div>
 </div>
 
+<!-- TAB: MARPOL ANNEXES -->
+<div id="tab-annexes" class="tab-content" style="display:none;">
+    <div class="card">
+        <h2>MARPOL Annexes (Приложения)</h2>
+        <div style="font-size:0.75rem; color:var(--yellow); margin-bottom:12px; line-height:1.4;">
+            ℹ️ Справочник по всем приложениям MARPOL. Выбери приложение и язык чтения.
+        </div>
+
+        <div class="form-group">
+            <label>Annex (Приложение)</label>
+            <select id="annexSelect" onchange="renderAnnex()" style="border-color:var(--accent); font-weight:bold; font-size:1.05rem;">
+                <option value="I">Annex I — Oil (Нефть)</option>
+                <option value="II">Annex II — Noxious Liquid Substances (Вредные жидкие вещества)</option>
+                <option value="III">Annex III — Harmful Substances in Packaged Form (Вредные вещества в упаковке)</option>
+                <option value="IV">Annex IV — Sewage (Сточные воды)</option>
+                <option value="V">Annex V — Garbage (Мусор)</option>
+                <option value="VI">Annex VI — Air Pollution (Загрязнение атмосферы)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Language (Язык)</label>
+            <select id="annexLangSelect" onchange="renderAnnex()" style="border-color:var(--accent); font-weight:bold; font-size:1.05rem;">
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+            </select>
+        </div>
+
+        <div id="annexDataContainer" style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:16px; line-height:1.6;"></div>
+    </div>
+</div>
+
+
 <!-- TAB 13: SEA TRIAL -->
 <div id="tab-seatrial" class="tab-content" style="display:none;">
     <div class="card">
